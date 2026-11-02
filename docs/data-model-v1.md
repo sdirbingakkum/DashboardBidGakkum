@@ -14,7 +14,7 @@ This application manages **POMDAM only**. The canonical organization list contai
 - Historical workbook labels remain in `organization_aliases`; retain source labels exactly for import reconciliation.
 - PA/BA/TA/PNS are personnel reporting categories, not individual rank records.
 - Both `report_counts` and `sim_report_counts` use `jumlah_tercatat` until the source owner confirms whether each number means incidents, personnel, issued licenses, or another measure.
-- Period and organizational totals are derived from atomic rows.
+- Activity-report period and organizational totals are derived from atomic rows. Provos uses point-in-time snapshots and must never be summed across reporting periods.
 
 ## Entity map
 
@@ -33,7 +33,12 @@ This application manages **POMDAM only**. The canonical organization list contai
 - `report_imports`: shared import provenance, validation summary, and `dataset_code` discriminator (e.g. `pelanggaran`, `sim`).
 - `report_counts`: Pelanggaran facts, including workbook sheet/cell provenance and personnel-group dimension.
 - `sim_categories`: reusable SIM category master (A, BI, BII, B II SUS, C), referenced by UUID.
-- `sim_report_counts`: SIM facts by period, POMDAM, and SIM category; never mixed into Pelanggaran facts.
+- `sim_report_counts`: SIM facts by month, POMDAM, and SIM category; never mixed into Pelanggaran facts.
+- `provos_education_statuses`: reusable Provos education-status master (SUDAH/BELUM).
+- `provos_reports`: one personnel-strength snapshot per POMDAM and reporting period, including DSPP and NYATA.
+- `provos_rank_counts`: PA/BA/TA detail referencing the shared `personnel_categories` master.
+- `provos_education_counts`: SUDAH/BELUM detail referencing `provos_education_statuses`.
+
 
 ## RLS baseline
 
@@ -87,6 +92,24 @@ The SIM report is a separate reporting domain from Pelanggaran. It shares only t
 - The metric meaning remains `jumlah_tercatat`; the workbook does not by itself establish whether the figures mean licenses issued, services performed, or another measure.
 - The original workbook binary was not archived at the project owner's instruction. Its SHA-256 fingerprint and all 945 source-cell coordinates are stored with the import batch and facts.
 
+
+
+## Third workbook: Rekap Provos.xlsx (2026)
+
+Provos is a point-in-time personnel-strength report, not an additive activity report like Pelanggaran or SIM. Do not sum personnel snapshots across months or semesters to produce an annual headcount.
+
+- The snapshot header stores DSPP and NYATA separately.
+- Rank composition is normalized in `provos_rank_counts`, referencing the shared PA/BA/TA rows in `personnel_categories`.
+- Education status is normalized in `provos_education_counts`, referencing the dedicated reusable `provos_education_statuses` master containing SUDAH and BELUM.
+- Database-level deferred constraints enforce exactly PA/BA/TA and SUDAH/BELUM detail rows, and require both detail sums to equal NYATA at transaction commit.
+- The uploaded workbook contains 21 POMDAM in both `BULANAN` and `SMR 1`. The six newer POMDAM remain visible in dashboards without fabricated zero snapshots.
+- The `SMR 1` sheet is confirmed as Semester I TA 2026 and is linked to the existing `reporting_periods` semester record. It contains 21 confirmed snapshots: DSPP total 5,505 and NYATA total 5,470.
+- The `BULANAN` sheet contains 21 snapshots: DSPP total 6,456 and NYATA total 5,892. Its appendix heading says August 2026 while the main heading says September 2026. The records are stored with `report_period_id=NULL` and `period_resolution_status='needs_confirmation'`; they must not appear under a confirmed month until the source owner resolves the conflict.
+- All 42 snapshots passed `PA + BA + TA = NYATA` and `SUDAH + BELUM = NYATA`. The data values are verified separately from the unresolved monthly period label.
+- Source row and cell coordinates are retained: header values in columns C/D, rank detail in E/F/G, and education detail in I/J. JML columns are derived and are not stored as independent facts.
+- The two monthly records with DSPP greater than NYATA by a notable margin are preserved and flagged for context review: POMDAM XVIII/KSR (330 vs 115) and POMDAM XXII/TB (300 vs 188). DSPP/NYATA differences can represent staffing gaps and are not treated as arithmetic errors.
+- The original workbook binary was not archived at the project owner's instruction. Its SHA-256 fingerprint and all source rows/cells are retained in the import batch and data rows.
+
 ## Excel round-trip compatibility contract
 
 The uploaded workbook is the authoritative presentation template. Normalization changes how facts are stored, not the report's visible content or workbook form.
@@ -97,7 +120,7 @@ The uploaded workbook is the authoritative presentation template. Normalization 
 - Preserve worksheet names and order, merged cells, row/column dimensions, hidden rows/columns, formulas, number formats, styles, print area, page orientation, paper size, margins, headers/footers, and print scaling.
 - Recalculate or independently validate formula-driven totals after writing. Compare exported workbook structure and mapped values against the template and approved source data before release.
 - Historical months and future months that use the same approved workbook format must use the same template version. When the official workbook format changes, register a new template version; do not silently reshape older exports.
-- Standardized dashboards and exports always use all 27 canonical POMDAM units. The six newer units remain visible even where historical periods have no submitted report; missing values are not converted to zero. The original uploaded workbook is kept intact as source evidence, while the managed output template extends its row structure to 27 units without changing the established report design, formatting, or formula behavior.
+- Standardized dashboards and exports always use all 27 canonical POMDAM units. The six newer units remain visible even where historical periods have no submitted report; missing values are not converted to zero. When the workbook binary is retained, it remains the source template; when archiving is declined, the import hash and cell-level provenance remain stored, while export still uses an approved original template. The managed output template extends its row structure to 27 units without changing the established report design, formatting, or formula behavior.
 
 The export engine and regression tests for full workbook fidelity are still implementation work; this contract defines the acceptance criteria, not a claim that export is already available.
 
