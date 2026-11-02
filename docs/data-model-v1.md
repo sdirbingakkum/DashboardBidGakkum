@@ -30,7 +30,7 @@ This application manages **POMDAM only**. The canonical organization list contai
 - `organization_change_log`: auditable POMDAM master changes.
 - `violation_groups`, `violation_categories`: official B/C and B1-B11/C1-C6 hierarchy; all 17 labels and codes were confirmed by the project owner on 2026-11-02 and are stored with `verification_status='verified'`.
 - `reporting_periods`: month/quarter/semester/year calendar.
-- `report_imports`: shared import provenance, validation summary, and `dataset_code` discriminator (e.g. `pelanggaran`, `sim`).
+- `report_imports`: shared import provenance, validation summary, and `dataset_code` discriminator (`pelanggaran`, `sim`, `laka_lalin`, `provos`).
 - `report_counts`: Pelanggaran facts, including workbook sheet/cell provenance and personnel-group dimension.
 - `sim_categories`: reusable SIM category master (A, BI, BII, B II SUS, C), referenced by UUID.
 - `sim_report_counts`: SIM facts by month, POMDAM, and SIM category; never mixed into Pelanggaran facts.
@@ -38,6 +38,9 @@ This application manages **POMDAM only**. The canonical organization list contai
 - `provos_reports`: one personnel-strength snapshot per POMDAM and reporting period, including DSPP and NYATA.
 - `provos_rank_counts`: PA/BA/TA detail referencing the shared `personnel_categories` master.
 - `provos_education_counts`: SUDAH/BELUM detail referencing `provos_education_statuses`.
+- `laka_lalin_accident_types`, `laka_lalin_loss_severities`, `laka_lalin_vehicle_types`, and `laka_lalin_damage_levels`: reusable Laka Lalin reference dimensions.
+- `laka_lalin_reports`: monthly report header per POMDAM and period.
+- `laka_lalin_report_counts`: atomic Laka Lalin measures by accident type, personnel group, personnel-loss rank/severity, and vehicle damage category.
 
 
 ## RLS baseline
@@ -109,6 +112,20 @@ Provos is a point-in-time personnel-strength report, not an additive activity re
 - Source row and cell coordinates are retained: header values in columns C/D, rank detail in E/F/G, and education detail in I/J. JML columns are derived and are not stored as independent facts.
 - The two monthly records with DSPP greater than NYATA by a notable margin are preserved and flagged for context review: POMDAM XVIII/KSR (330 vs 115) and POMDAM XXII/TB (300 vs 188). DSPP/NYATA differences can represent staffing gaps and are not treated as arithmetic errors.
 - The original workbook binary was not archived at the project owner's instruction. Its SHA-256 fingerprint and all source rows/cells are retained in the import batch and data rows.
+
+## Fourth workbook: Statistik Laka Lalin.xlsx (2026)
+
+Laka Lalin is a monthly activity report and has a dedicated model separate from Pelanggaran, SIM, and Provos. It shares only the POMDAM organization master, the 2026 reporting calendar, the personnel-category master, and the import registry.
+
+- Reference dimensions are normalized in `laka_lalin_accident_types` (GANDA, TUNGGAL, TABRAK LARI), `laka_lalin_loss_severities` (MD, LB, LR), `laka_lalin_vehicle_types` (RANDIS, RAN UMUM), and `laka_lalin_damage_levels` (RB, RR). MD/LB/LR and RB/RR are retained as source codes; their expansions are not inferred.
+- `laka_lalin_reports` stores the month × POMDAM report header. `laka_lalin_report_counts` stores 18 atomic source cells per report with the source-cell coordinate.
+- `measure_code` separates accident-type counts, personnel by rank, personnel loss by rank, personnel loss by severity, and material loss by vehicle/damage level. Personnel loss by rank and by MD/LB/LR are two representations of the same casualty population; their totals must not be added together.
+- The 2026 workbook contains 21 POMDAM on each of its 12 monthly sheets. January–September contribute 189 report headers and 3,402 atomic cells. The six newest POMDAM XXV–XXX have no source records and remain visible as no report submitted rather than zero.
+- January–September totals are: accident types 106; personnel by rank 104; personnel loss by rank 152; personnel loss by MD/LB/LR 152; material loss by vehicle/damage level 105. The two 152 totals describe the same loss population in different dimensions.
+- The imported cell mix is 392 positive, 3,009 explicit zero, and one source blank. The blank cell `MAR!X23` (POMDAM XVII/CEN, Ran Umum–RR) is stored as `NULL` with `verification_status='source_blank'`; it is not changed into zero.
+- October, November, and December sheets contain explicit zero in every atomic metric for every listed POMDAM. Because the workbook does not establish whether these are submitted zero reports or unfilled templates, they are excluded from report facts pending source-owner confirmation.
+- The quarterly and semester aggregation sheets reconcile with their component monthly sheets and are not imported as independent facts. The `JAN-JUL 2026` sheet has 80 of 378 organization-level atomic cells that do not reconcile with January–July monthly sums; its coincidentally matching grand total is not used. All dashboard totals should be derived from monthly atomic facts.
+- The original workbook binary was not archived at the project owner's instruction. Its SHA-256 fingerprint and source sheet/row/cell provenance are stored in the import registry and facts.
 
 ## Excel round-trip compatibility contract
 
