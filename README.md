@@ -23,7 +23,7 @@ Data sumber dianalisis per workbook sebelum dimodelkan dan dimuat ke Supabase.
 8. Totals/subtotals are derived from normalized base data, not stored as duplicate aggregates.
 9. Excel import/export must preserve the original report content and workbook form. Normalize the stored facts, but export from an immutable, versioned copy of the original template and write only to mapped input cells.
 10. Preserve sheet names/order, merged cells, dimensions, styles, formulas, number formats, print settings, page layout, and source-cell mapping. Never replace formulas with hard-coded totals.
-11. Do not interpret a missing POMDAM in a source workbook as zero. The first analyzed workbook has 21 POMDAM labels while the canonical master has 27; the source template's 21-label layout remains unchanged unless an official new template is provided.
+11. All 27 canonical POMDAM units must appear in standardized dashboard views and exports. The first analyzed workbook has historical labels for 21 units; the six newer POMDAM units remain included but show no report/no submitted value for periods without data. Preserve the uploaded workbook unchanged as source evidence. Extend the managed output template to 27 POMDAM while retaining the established workbook design, formatting, worksheet organization, and formula behavior. A missing report is never fabricated as zero.
 
 ## Current database foundation
 
@@ -56,7 +56,7 @@ All public tables have RLS enabled. Authenticated users have SELECT only; anonym
 
 The database stores normalized, atomic report facts; the uploaded Excel workbook remains the authoritative output template. Exports must preserve the original workbook's visible form and content: worksheets/order, merged cells, dimensions, styles, formulas, number formats, print setup, page layout, and source-specific labels. Only mapped input cells may be written. Summary formulas must remain formulas, with totals validated before release.
 
-Historical and future months using the same official format must export from the same template version. A changed official format receives a new template version. Missing POMDAM labels in a workbook are not zeros. The first analyzed workbook contains 21 POMDAM labels while the master contains 27, so its template must retain the 21-label layout unless an official revised workbook is supplied.
+Historical and future months using the same official format must export from the same template version. A changed official format receives a new template version. The standardized output always includes all 27 master POMDAM units. The first analyzed workbook contains historical report labels for 21 units; the six newer units stay in the report structure but show no report/no submitted value for periods without data, not fabricated zeros. Keep the uploaded file unchanged as source evidence, and extend the managed output template to 27 POMDAM while retaining the original design, formatting, worksheet organization, and formula behavior.
 
 This is the locked acceptance contract. The import/export engine and its regression tests are not yet implemented.
 
