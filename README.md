@@ -64,7 +64,7 @@ This is the locked acceptance contract. The import/export engine and its regress
 
 - The first analyzed workbook, `Rekap Pelanggaran.xlsx`, is a multi-sheet report, not a flat dataset.
 - Its 2026 month/quarter/semester sheets include formula inconsistencies. Keep raw source references and validation results during import.
-- 27 POMDAM units are seeded as active based on the domain confirmation supplied by the project owner.
+- 27 POMDAM units are seeded as active based on the domain confirmation supplied by the project owner. All 27 remain in standardized reporting; a unit without a submitted period report is shown as not reported, not zero.
 - Four nomenclature variants from the first workbook are preserved as aliases.
 - POMDAM IM has an official emblem reference recorded. The final image asset for each POMDAM must be verified and stored against that POMDAM record; do not substitute a generic or newly drawn logo.
 - Violation codes and labels B1-B11 and C1-C6 are the official nomenclature confirmed by the project owner; all 17 database records are marked `verified`. Legal-basis references remain a separate field and will only be populated from authoritative sources.
