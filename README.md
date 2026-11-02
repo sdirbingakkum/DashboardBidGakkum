@@ -71,7 +71,7 @@ The `asset_url` currently points to the original external source. The live Supab
 - The first analyzed workbook, `Rekap Pelanggaran.xlsx`, is a multi-sheet report, not a flat dataset.
 - Its 2026 month/quarter/semester sheets include formula inconsistencies. Keep raw source references and validation results during import.
 - 27 POMDAM units are seeded as active based on the domain confirmation supplied by the project owner. All 27 remain in standardized reporting; a unit without a submitted period report is shown as not reported, not zero.
-- Four workbook nomenclature variants and three Dinas Sejarah AD label variants are preserved as aliases. Canonical labels remain unchanged.
+- Eight source/legacy nomenclature aliases are preserved, including `XIX/TT` → POMDAM XIX/TUTAM. Canonical labels remain unchanged.
 - All 27 POMDAM records now have a primary `asset_url`: 15 emblem files are referenced from the official Dinas Sejarah AD Kotama directory and marked `verified`; 12 newer-unit candidate files are referenced from Wikimedia Commons and marked `unverified` pending comparison with official unit-issued files. No generic or newly drawn placeholder is used.
 - Violation codes and labels B1-B11 and C1-C6 are the official nomenclature confirmed by the project owner; all 17 database records are marked `verified`. Legal-basis references remain a separate field and will only be populated from authoritative sources.
 - No report-count facts have been imported. Metric semantics and formula corrections are still being reconciled.
