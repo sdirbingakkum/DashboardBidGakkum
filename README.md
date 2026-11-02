@@ -37,7 +37,7 @@ Master entities:
 - `organization_types` — only POMDAM.
 - `organizations` — 27 active POMDAM units.
 - `organization_aliases` — historical/source labels.
-- `organization_emblems` — emblem assets directly linked to POMDAM.
+- `organization_emblems` — one primary emblem/avatar URL linked directly to each of the 27 POMDAM units.
 - `personnel_categories` — PA, BA, TA, PNS.
 - `positions` — POMDAM position definitions; currently DANPOMDAM.
 - `position_assignments` — dated incumbent history.
@@ -60,20 +60,26 @@ Historical and future months using the same official format must export from the
 
 This is the locked acceptance contract. The import/export engine and its regression tests are not yet implemented.
 
+## POMDAM emblem/avatar register
+
+The live master has 27 primary emblem references, one for every POMDAM. The older 15 are linked to the official Dinas Sejarah AD directory; the 12 newer-unit images are candidate Commons references and remain explicitly unverified. Each record includes a source URL and notes about attribution or discrepancies.
+
+The `asset_url` currently points to the original external source. The live Supabase project has no Storage bucket or uploaded image objects yet, so these image binaries are not self-hosted by the project. Verify the 12 candidates against direct unit-issued files, then copy approved files into project-controlled Storage. Do not silently mark candidates verified.
+
 ## Data quality status
 
 - The first analyzed workbook, `Rekap Pelanggaran.xlsx`, is a multi-sheet report, not a flat dataset.
 - Its 2026 month/quarter/semester sheets include formula inconsistencies. Keep raw source references and validation results during import.
 - 27 POMDAM units are seeded as active based on the domain confirmation supplied by the project owner. All 27 remain in standardized reporting; a unit without a submitted period report is shown as not reported, not zero.
-- Four nomenclature variants from the first workbook are preserved as aliases.
-- POMDAM IM has an official emblem reference recorded. The final image asset for each POMDAM must be verified and stored against that POMDAM record; do not substitute a generic or newly drawn logo.
+- Four workbook nomenclature variants and three Dinas Sejarah AD label variants are preserved as aliases. Canonical labels remain unchanged.
+- All 27 POMDAM records now have a primary `asset_url`: 15 emblem files are referenced from the official Dinas Sejarah AD Kotama directory and marked `verified`; 12 newer-unit candidate files are referenced from Wikimedia Commons and marked `unverified` pending comparison with official unit-issued files. No generic or newly drawn placeholder is used.
 - Violation codes and labels B1-B11 and C1-C6 are the official nomenclature confirmed by the project owner; all 17 database records are marked `verified`. Legal-basis references remain a separate field and will only be populated from authoritative sources.
 - No report-count facts have been imported. Metric semantics and formula corrections are still being reconciled.
 
 ## Next steps
 
 1. Analyze remaining Excel workbooks one at a time.
-2. Complete the official emblem asset register for all POMDAM units.
+2. Verify the 12 newer-unit emblem candidates against direct unit-issued files and move approved binaries into project-controlled Supabase Storage.
 3. Confirm report measure semantics and legal basis before accepting report counts.
 4. Implement immutable/versioned Excel templates, import validation, and full workbook export-fidelity regression tests.
 5. Configure application authentication/RLS roles and Cloudflare CI/CD.
