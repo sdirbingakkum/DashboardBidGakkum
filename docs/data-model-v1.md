@@ -52,3 +52,21 @@ All tables in `public` have RLS enabled. Authenticated users receive SELECT only
 3. Whether each cell represents incidents, individuals, or another reported measure.
 4. Role model for operator, verifier, leadership, and auditor.
 5. Complete workbook catalogue and output fidelity requirements for Excel exports.
+
+## Deployed baseline (2026-11-02)
+
+The initial schema and reference data were deployed to Supabase project `fmmvctlspfbkeanytpkc`.
+
+Final reference counts verified on the database:
+- 4 organization types.
+- 27 unique KODAM candidate rows, all `needs_verification`.
+- 0 POMDAM rows (not auto-inferred from KODAM count).
+- 4 alias rows from the first workbook (after duplicate cleanup).
+- 4 personnel categories, 17 positions, 19 terminology entries.
+- 2 violation groups and 17 provisional violation categories.
+- 19 reporting periods in 2026.
+- 0 report count facts imported.
+
+All 15 public tables have RLS enabled. Policy baseline allows authenticated SELECT only; anonymous users have no policy. SQL grants are also restricted: anon has no table privileges, authenticated has SELECT only, service_role retains operational DML privileges. New public tables under the postgres role inherit the same default privilege policy.
+
+Security advisor returned no lints after the privilege tightening. Performance advisor reports unused indexes because the schema is new and has no dashboard workload; do not drop them until actual query patterns are measured.
