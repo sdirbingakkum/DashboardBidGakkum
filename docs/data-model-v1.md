@@ -1,72 +1,65 @@
 # Data Model v1 — Dashboard Sdirbingakkum
 
-## Principles
+## Scope
 
-- Canonical identity is a stable UUID. Display labels are short codes.
-- Historical naming is captured with aliases and validity dates.
-- An organization can change parent or status over time; retain effective dates and change evidence.
-- KODAM count must not be equated to active POMDAM count.
-- POMDAM displays its parent KODAM emblem. Store emblem assets against the KODAM organization.
-- Personnel group PA/BA/TA/PNS is not equivalent to individual rank. Detailed rank master is intentionally deferred until source review.
-- Report counts remain `jumlah_tercatat` until reporting semantics are officially settled.
-- Period totals and organizational totals are derived from atomic rows.
+This application manages **POMDAM only**. The canonical organization list contains 27 POMDAM units. No separate organization master or hierarchy for another unit type is used by the dashboard, filters, reports, or input application.
+
+## Locked rules
+
+- Canonical identity is a stable UUID; the primary display label is the POMDAM short name.
+- Display labels use the `POMDAM` prefix, e.g. `POMDAM I/BB`, `POMDAM XIX/TUTAM`, and `POMDAM JAYA`.
+- Each POMDAM emblem must exactly match the emblem paired with the identical territorial name. Store the asset directly against the POMDAM organization row.
+- Do not model parent-organization relationships. The old `parent_organization_id` column has been removed.
+- The project owner confirmed all 27 POMDAM units exist. The current 27 master rows are therefore active.
+- Historical workbook labels remain in `organization_aliases`; retain source labels exactly for import reconciliation.
+- PA/BA/TA/PNS are personnel reporting categories, not individual rank records.
+- Report counts stay `jumlah_tercatat` until the source owner confirms whether the number means incidents, personnel, or another measure.
+- Period and organizational totals are derived from atomic rows.
 
 ## Entity map
 
-- `organization_types`: KODAM, POMDAM, POMAD, PUSPOMAD.
-- `organizations`: hierarchy and validity.
+- `organization_types`: only the POMDAM type.
+- `organizations`: the 27 POMDAM units.
 - `organization_aliases`: historical/variant source labels.
-- `organization_emblems`: official emblem asset register; parent Kodam owns the POMDAM display emblem.
+- `organization_emblems`: official emblem references/assets attached directly to each POMDAM.
 - `personnel_categories`: PA, BA, TA, PNS.
-- `positions`: stable position definitions.
-- `position_assignments`: dated appointment/occupancy for an organization.
-- `terminology`: glossary of abbreviations and expanded terms.
-- `master_data_sources`: source evidence register.
-- `organization_change_log`: auditable changes with source and effective date.
-- `violation_groups`, `violation_categories`: source-based category hierarchy B/C and B1-B11/C1-C6.
+- `positions`: position definitions relevant to POMDAM; currently DANPOMDAM.
+- `position_assignments`: dated appointment/occupancy history.
+- `terminology`: POMDAM-specific glossary entries.
+- `master_data_sources`: source evidence for POMDAM naming, appointments, and emblems.
+- `organization_change_log`: auditable POMDAM master changes.
+- `violation_groups`, `violation_categories`: source-based B/C and B1-B11/C1-C6 hierarchy.
 - `reporting_periods`: month/quarter/semester/year calendar.
-- `report_imports`: immutable import provenance and validation summary.
+- `report_imports`: import provenance and validation summary.
 - `report_counts`: normalized source observations, including workbook sheet/cell provenance.
 
 ## RLS baseline
 
-All tables in `public` have RLS enabled. Authenticated users receive SELECT only. Writes use trusted server-side/service-role paths until the roles and approval process for operators, reviewers, and leadership have been agreed. The service-role key must never be exposed to a browser.
+All tables in `public` have RLS enabled. Authenticated users receive SELECT only. Anonymous users have no table privileges. Writes use trusted server-side/service-role paths until operator, verifier, leadership, and auditor roles have been formally defined. The service-role key must never be exposed to a browser.
 
-## Verification flags
+## POMDAM master state (2026-11-02)
 
-`needs_verification` and `unverified` deliberately indicate that candidate directory data is not yet approved for official reporting. Do not promote these automatically.
+- 27 unique POMDAM records, all active.
+- 1 organization type: POMDAM.
+- 0 parent organization relationships.
+- 4 source-label aliases from `Rekap Pelanggaran.xlsx`.
+- 1 official emblem reference recorded for POMDAM IM; the final image asset register for all POMDAM units remains to be completed from official sources.
+- 1 position definition: DANPOMDAM.
+- 4 personnel categories.
+- 2 violation groups and 17 provisional violation categories.
+- 19 reporting periods for 2026.
+- 0 report count facts imported until the workbook reconciliation and measure definition are complete.
 
 ## First workbook: Rekap Pelanggaran.xlsx (2026)
 
-- 27 KODAM candidates have been staged as `needs_verification` only, based on research of the current 2026 organizational landscape.
-- No POMDAM child organizations were auto-created.
-- 4 source nomenclature variants from the workbook were preserved as aliases.
-- 17 violation labels are captured as provisional source labels.
-- 19 periods are seeded: 12 months, 4 quarters, 2 semesters, and 1 year.
-- Monthly aggregates noted in the analysis are not loaded into `report_counts` pending workbook-by-workbook semantic and formula reconciliation.
+The workbook is a multi-sheet report, not a flat data table. The source uses a historical list of POMDAM labels and has formula inconsistencies in some monthly/period summary sheets. The import process must retain workbook sheet/cell provenance, preserve all original source aliases, and validate totals before accepting facts.
 
-## Open decisions
+The workbook's 21 organization labels are not a reason to create 21-only master data or to treat the other six POMDAM units as zero. Only values actually present in the workbook should be imported.
 
-1. Official confirmation of KODAM/POMDAM organization and parent mapping with effective dates.
-2. Exact official wording and legal basis for B1-B11 and C1-C6.
-3. Whether each cell represents incidents, individuals, or another reported measure.
-4. Role model for operator, verifier, leadership, and auditor.
-5. Complete workbook catalogue and output fidelity requirements for Excel exports.
+## Open work
 
-## Deployed baseline (2026-11-02)
-
-The initial schema and reference data were deployed to Supabase project `fmmvctlspfbkeanytpkc`.
-
-Final reference counts verified on the database:
-- 4 organization types.
-- 27 unique KODAM candidate rows, all `needs_verification`.
-- 0 POMDAM rows (not auto-inferred from KODAM count).
-- 4 alias rows from the first workbook (after duplicate cleanup).
-- 4 personnel categories, 17 positions, 19 terminology entries.
-- 2 violation groups and 17 provisional violation categories.
-- 19 reporting periods in 2026.
-- 0 report count facts imported.
-
-All 15 public tables have RLS enabled. Policy baseline allows authenticated SELECT only; anonymous users have no policy. SQL grants are also restricted: anon has no table privileges, authenticated has SELECT only, service_role retains operational DML privileges. New public tables under the postgres role inherit the same default privilege policy.
-
-Security advisor returned no lints after the privilege tightening. Performance advisor reports unused indexes because the schema is new and has no dashboard workload; do not drop them until actual query patterns are measured.
+1. Complete official emblem assets for the 27 POMDAM units.
+2. Confirm whether each report count means incidents, individuals, or another measure.
+3. Confirm official wording/legal basis for B1-B11 and C1-C6.
+4. Define access roles for operator, verifier, leadership, and auditor.
+5. Complete workbook catalogue and Excel export-fidelity requirements.
