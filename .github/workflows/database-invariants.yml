@@ -1,0 +1,40 @@
+name: Database invariants
+
+on:
+  pull_request:
+    paths:
+      - "supabase/**"
+      - ".github/workflows/database-invariants.yml"
+  push:
+    branches: [main]
+    paths:
+      - "supabase/**"
+      - ".github/workflows/database-invariants.yml"
+
+jobs:
+  database-invariants:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Start local Supabase stack
+        run: supabase start
+
+      - name: Apply migrations
+        run: supabase db reset
+
+      - name: Check reference data invariants
+        run: |
+          supabase db query --local --file supabase/tests/seed_invariants.sql
+
+      - name: Stop local Supabase stack
+        if: always()
+        run: supabase stop
