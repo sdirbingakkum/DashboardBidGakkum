@@ -68,7 +68,12 @@ begin
   select count(*) into n from public.reporting_periods where report_year=2026;
   if n <> 19 then raise exception 'Expected 19 periods for 2026, got %', n; end if;
   select count(*) into n from public.organization_aliases;
-  if n < 7 then raise exception 'Expected at least 7 preserved workbook/source aliases, got %', n; end if;
+  if n < 8 then raise exception 'Expected at least 8 preserved workbook/source aliases, got %', n; end if;
+  if not exists (
+    select 1 from public.organization_aliases a
+    join public.organizations o on o.id=a.organization_id
+    where o.code='POMDAM-XIX' and a.alias='XIX/TT'
+  ) then raise exception 'Workbook alias XIX/TT must map to POMDAM XIX/TUTAM'; end if;
 
   select count(*) into n from public.organization_emblems where is_primary=true;
   if n <> 27 then raise exception 'Expected one primary emblem for each of 27 POMDAM units, got %', n; end if;
