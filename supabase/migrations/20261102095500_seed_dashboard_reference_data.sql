@@ -84,15 +84,16 @@ from public.organization_types t where t.code='POMAD'
 on conflict (code,valid_from) do nothing;
 insert into public.organization_aliases(organization_id,alias,alias_type,source_reference,notes)
 select o.id,v.alias,v.alias_type,'Rekap Pelanggaran.xlsx (2026)',
- 'Alias dipertahankan sebagai label historis/sumber; belum dikoreksi tanpa bukti nomenklatur resmi.'
+ 'Alias dipertahankan sebagai variasi kode/ejaan pada workbook, bukan unit organisasi terpisah.'
 from (values
- ('XV','XV/PTM','legacy_code','Workbook includes variant XV/PTM versus current candidate KODAM XV/PTM.'),
- ('XXIV','XIV/MT','spelling_variant','Workbook contains XIV/MT; possible ordinal/code typo.'),
- ('XXII','XX/TB','legacy_code','Workbook contains XX/TB; possible missing ordinal digit.'),
- ('XXII','XXII/TB','source_label','Workbook code variant.')
-) v(code,alias,alias_type,notes)
+ ('XV','XV/PTM','legacy_code'),
+ ('XXIV','XIV/MT','spelling_variant'),
+ ('XXII','XX/TB','legacy_code'),
+ ('XXII','XXII/TB','source_label')
+) v(code,alias,alias_type)
 join public.organizations o on o.code=v.code
-on conflict do nothing;
+join public.organization_types t on t.id=o.organization_type_id and t.code='KODAM'
+on conflict (organization_id,alias,alias_type,valid_from) do nothing;
 insert into public.positions(code,short_name,official_name,organization_type_id,description) values
  ('PANGDAM','PANGDAM','Panglima Komando Daerah Militer',(select id from public.organization_types where code='KODAM'),'Pimpinan Kodam.'),
  ('KASDAM','KASDAM','Kepala Staf Kodam',(select id from public.organization_types where code='KODAM'),'Kepala staf Kodam.'),
