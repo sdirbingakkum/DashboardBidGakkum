@@ -211,5 +211,56 @@ begin
     raise exception 'Laka Lalin workbook facts are operational import data and must not be preloaded by seed.sql';
   end if;
 
+
+  -- Tindak Pidana reference master and import-only facts.
+  select count(*) into n from public.tindak_pidana_categories;
+  if n <> 113 then raise exception 'Expected 113 Tindak Pidana source-label categories, got %',n; end if;
+  if exists (
+    select 1 from public.tindak_pidana_categories
+    where code !~ '^TP[0-9]{3}$' or display_order < 1 or not is_active
+  ) then raise exception 'Tindak Pidana category codes/order/status are invalid'; end if;
+  if (select count(distinct name) from public.tindak_pidana_categories) <> 113 then
+    raise exception 'Tindak Pidana source labels must remain distinct in the master';
+  end if;
+  if exists (
+    with expected(code,name) as (values
+      ('TP018','Menolak perintah'),
+      ('TP031','Penggelapan'),
+      ('TP036','Penyalahgunaan alat perang'),
+      ('TP040','Penyelundupan'),
+      ('TP054','Pelecehan anak dibawah umur'),
+      ('TP057','Penambangan liar'),
+      ('TP066','Membiarkan orang yang minta tolong'),
+      ('TP076','Intimidasi'),
+      ('TP099','Tidak menaati perintah')
+    )
+    select 1 from expected e
+    left join public.tindak_pidana_categories c on c.code=e.code
+    where c.id is null or c.name<>e.name
+  ) then raise exception 'Canonical month-one Tindak Pidana labels do not match source'; end if;
+
+  if exists (
+    select 1 from (values
+      ('tindak_pidana_categories'),
+      ('tindak_pidana_reports'),
+      ('tindak_pidana_report_counts')
+    ) t(table_name)
+    where not exists (
+      select 1 from pg_class c
+      join pg_namespace nsp on nsp.oid=c.relnamespace
+      where nsp.nspname='public' and c.relname=t.table_name and c.relrowsecurity
+    )
+  ) then raise exception 'RLS must be enabled on all Tindak Pidana tables'; end if;
+  if exists (select 1 from public.tindak_pidana_reports)
+     or exists (select 1 from public.tindak_pidana_report_counts) then
+    raise exception 'Tindak Pidana workbook facts are operational import data and must not be preloaded by seed.sql';
+  end if;
+  if not exists (
+    select 1 from pg_constraint
+    where conrelid='public.report_imports'::regclass
+      and conname='report_imports_dataset_code_check'
+      and pg_get_constraintdef(oid) like '%tindak_pidana%'
+  ) then raise exception 'report_imports must accept dataset_code tindak_pidana'; end if;
+
 end $$;
 rollback;
