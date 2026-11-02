@@ -67,6 +67,12 @@ insert into public.sim_categories(code,name,description,display_order) values
 on conflict(code) do update
 set name=excluded.name,description=excluded.description,display_order=excluded.display_order,is_active=true;
 
+insert into public.provos_education_statuses(code,name,description,display_order) values
+ ('SUDAH','SUDAH','Sudah mengikuti pendidikan Provos sesuai label sumber.',1),
+ ('BELUM','BELUM','Belum mengikuti pendidikan Provos sesuai label sumber.',2)
+on conflict(code) do update
+set name=excluded.name,description=excluded.description,display_order=excluded.display_order,is_active=true;
+
 insert into public.positions(code,short_name,official_name,organization_type_id,description) values
  ('DANPOMDAM','DANPOMDAM','Komandan POMDAM',(select id from public.organization_types where code='POMDAM'),'Jabatan komandan satuan POMDAM.')
 on conflict(code) do update
