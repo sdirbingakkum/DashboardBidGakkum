@@ -149,5 +149,67 @@ begin
     join pg_namespace s on s.oid=c.relnamespace
     where s.nspname='public' and c.relname='organizations'
   ) then raise exception 'RLS must be enabled on organizations'; end if;
+
+  -- Laka Lalin reusable reference masters are canonical and operational facts stay out of seed.sql.
+  if (select count(*) from public.laka_lalin_accident_types) <> 3 then
+    raise exception 'Expected 3 Laka Lalin accident-type master rows';
+  end if;
+  if exists (
+    with expected(code,name,ord) as (values
+      ('GANDA','GANDA',1),('TUNGGAL','TUNGGAL',2),('TABRAK_LARI','TABRAK LARI',3)
+    )
+    select 1 from expected e
+    left join public.laka_lalin_accident_types m on m.code=e.code
+    where m.id is null or m.name<>e.name or m.display_order<>e.ord or not m.is_active
+  ) then raise exception 'Laka Lalin accident-type master mismatch'; end if;
+
+  if exists (
+    with expected(code,name,ord) as (values
+      ('MD','MD',1),('LB','LB',2),('LR','LR',3)
+    )
+    select 1 from expected e
+    left join public.laka_lalin_loss_severities m on m.code=e.code
+    where m.id is null or m.name<>e.name or m.display_order<>e.ord or not m.is_active
+  ) then raise exception 'Laka Lalin loss-severity master mismatch'; end if;
+
+  if exists (
+    with expected(code,name,ord) as (values
+      ('RANDIS','RANDIS',1),('RAN_UMUM','RAN UMUM',2)
+    )
+    select 1 from expected e
+    left join public.laka_lalin_vehicle_types m on m.code=e.code
+    where m.id is null or m.name<>e.name or m.display_order<>e.ord or not m.is_active
+  ) then raise exception 'Laka Lalin vehicle-type master mismatch'; end if;
+
+  if exists (
+    with expected(code,name,ord) as (values
+      ('RB','RB',1),('RR','RR',2)
+    )
+    select 1 from expected e
+    left join public.laka_lalin_damage_levels m on m.code=e.code
+    where m.id is null or m.name<>e.name or m.display_order<>e.ord or not m.is_active
+  ) then raise exception 'Laka Lalin damage-level master mismatch'; end if;
+
+  if exists (
+    select 1 from (values
+      ('laka_lalin_accident_types'),
+      ('laka_lalin_loss_severities'),
+      ('laka_lalin_vehicle_types'),
+      ('laka_lalin_damage_levels'),
+      ('laka_lalin_reports'),
+      ('laka_lalin_report_counts')
+    ) t(table_name)
+    where not exists (
+      select 1 from pg_class c
+      join pg_namespace nsp on nsp.oid=c.relnamespace
+      where nsp.nspname='public' and c.relname=t.table_name and c.relrowsecurity
+    )
+  ) then raise exception 'RLS must be enabled on all Laka Lalin tables'; end if;
+
+  if exists (select 1 from public.laka_lalin_reports)
+     or exists (select 1 from public.laka_lalin_report_counts) then
+    raise exception 'Laka Lalin workbook facts are operational import data and must not be preloaded by seed.sql';
+  end if;
+
 end $$;
 rollback;
