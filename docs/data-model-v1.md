@@ -13,7 +13,7 @@ This application manages **POMDAM only**. The canonical organization list contai
 - The project owner confirmed all 27 POMDAM units exist. The current 27 master rows are therefore active.
 - Historical workbook labels remain in `organization_aliases`; retain source labels exactly for import reconciliation.
 - PA/BA/TA/PNS are personnel reporting categories, not individual rank records.
-- Both `report_counts` and `sim_report_counts` use `jumlah_tercatat` until the source owner confirms whether each number means incidents, personnel, issued licenses, or another measure.
+- `report_counts`, `sim_report_counts`, and `tindak_pidana_report_counts` use neutral `jumlah_tercatat` until the source owner confirms the precise meaning of each source figure.
 - Activity-report period and organizational totals are derived from atomic rows. Provos uses point-in-time snapshots and must never be summed across reporting periods.
 
 ## Entity map
@@ -30,7 +30,7 @@ This application manages **POMDAM only**. The canonical organization list contai
 - `organization_change_log`: auditable POMDAM master changes.
 - `violation_groups`, `violation_categories`: official B/C and B1-B11/C1-C6 hierarchy; all 17 labels and codes were confirmed by the project owner on 2026-11-02 and are stored with `verification_status='verified'`.
 - `reporting_periods`: month/quarter/semester/year calendar.
-- `report_imports`: shared import provenance, validation summary, and `dataset_code` discriminator (`pelanggaran`, `sim`, `laka_lalin`, `provos`).
+- `report_imports`: shared import provenance, validation summary, and `dataset_code` discriminator (`pelanggaran`, `sim`, `laka_lalin`, `provos`, `tindak_pidana`).
 - `report_counts`: Pelanggaran facts, including workbook sheet/cell provenance and personnel-group dimension.
 - `sim_categories`: reusable SIM category master (A, BI, BII, B II SUS, C), referenced by UUID.
 - `sim_report_counts`: SIM facts by month, POMDAM, and SIM category; never mixed into Pelanggaran facts.
@@ -41,6 +41,9 @@ This application manages **POMDAM only**. The canonical organization list contai
 - `laka_lalin_accident_types`, `laka_lalin_loss_severities`, `laka_lalin_vehicle_types`, and `laka_lalin_damage_levels`: reusable Laka Lalin reference dimensions.
 - `laka_lalin_reports`: monthly report header per POMDAM and period.
 - `laka_lalin_report_counts`: atomic Laka Lalin measures by accident type, personnel group, personnel-loss rank/severity, and vehicle damage category.
+- `tindak_pidana_categories`: 113 unique source-label entries for the 105 numbered Tindak Pidana items, retaining distinct label variants rather than silently merging them.
+- `tindak_pidana_reports`: monthly report header per POMDAM and period, with source POMDAM header coordinate and label.
+- `tindak_pidana_report_counts`: atomic count by report, source item number, exact source category label, and shared PA/BA/TA/PNS personnel category.
 
 
 ## RLS baseline
@@ -126,6 +129,22 @@ Laka Lalin is a monthly activity report and has a dedicated model separate from 
 - October, November, and December sheets contain explicit zero in every atomic metric for every listed POMDAM. Because the workbook does not establish whether these are submitted zero reports or unfilled templates, they are excluded from report facts pending source-owner confirmation.
 - The quarterly and semester aggregation sheets reconcile with their component monthly sheets and are not imported as independent facts. The `JAN-JUL 2026` sheet has 80 of 378 organization-level atomic cells that do not reconcile with January–July monthly sums; its coincidentally matching grand total is not used. All dashboard totals should be derived from monthly atomic facts.
 - The original workbook binary was not archived at the project owner's instruction. Its SHA-256 fingerprint and source sheet/row/cell provenance are stored in the import registry and facts.
+
+## Fifth workbook: Rekap Tindak Pidana TA 2026
+
+The Tindak Pidana workbook is a monthly activity dataset stored separately from Pelanggaran, SIM, Laka Lalin, and Provos. It shares the canonical POMDAM master, reporting calendar, personnel-category master, and import registry.
+
+- `tindak_pidana_categories` contains 113 unique exact source-label entries associated with the 105 numbered category rows. The 105 source item numbers are stable positions in the workbook; the label at some positions changes across monthly sheets. Keep both `source_item_no` and `source_category_label` on every fact and do not merge labels into one canonical category without owner confirmation.
+- `tindak_pidana_reports` stores one monthly header per POMDAM. `tindak_pidana_report_counts` stores one fact per source item × personnel group, referencing shared PA/BA/TA/PNS master values.
+- January–September 2026 contain 189 report headers (21 POMDAM × 9 months) and 79,380 atomic source cells (105 items × 4 personnel categories × 21 POMDAM × 9 months). The six newer POMDAM XXV–XXX have no source rows; keep them visible as no report submitted, not zero.
+- January–September total is 1,006. Monthly totals: JAN=121, FEB=184, MAR=106, APR=112, MEI=101, JUN=81, JUL=92, AGU=88, SEP=121. Personnel-category totals: PA=67, BA=391, TA=546, PNS=2.
+- The imported value mix is 664 positive cells, 78,707 explicit zero cells, and 9 source blanks. The nine blanks are PA source cells repeated in JAN, APR, and JUL: AQ50 (POMDAM XII/TPR, item 48 Perzinahan), AV32 (POMDAM XIII/MDK, item 30 Penganiayaan), and AV50 (POMDAM XIII/MDK, item 48 Perzinahan). All are retained as `NULL` with `verification_status='source_blank'`, never changed to zero.
+- The source label variations occur at item numbers 18 (Menolak perintah / Menolak perintah dinas), 31 (Penggelapan / Penggelapan dan penipuan), 36 (Penyalahgunaan alat perang / Menghilangkan alat perang), 40 (Penyelundupan / Peny eludupan spelling variant), 54 (Pelecehan anak dibawah umur / Pelecehan seksual), 57 (Penambangan liar / Pencurian minyak mentah), 66 (Membiarkan orang yang minta tolong / Tindak pidana cukai), 76 (Intimidasi / Fitnah), and 99 (Tidak menaati perintah / Tidak menaati perintah dinas). The exact label is stored with every fact. Item 66 and item 105 both carry the label Tindak pidana cukai in some later monthly templates; they remain separate item positions.
+- Monthly aggregation sheets TW 1–4, SMT 1–2, and TAH 2026 reconcile to their component month cells and are not imported as facts. Legacy 2020 sheets and blank worksheets are not reporting facts.
+- October contains zero-valued atomic cells except for the same three PA blanks seen in January, April, and July. November and December contain explicit zero values. These three months are not imported pending confirmation that the sheets are submitted reports rather than unfilled templates.
+- Four source POMDAM headers are preserved as aliases: POMDAM /III → POMDAM III/SLW; POMDAM /IV DIP → POMDAM IV/DIP; POMDAM XVI/PTM → canonical POMDAM XV/PTM; POMDAM XVIII/KAS (annual summary label) → POMDAM XVIII/KSR.
+- The metric remains `jumlah_tercatat`; the precise semantic meaning of this count should be confirmed by the source owner before describing it publicly as number of cases or individuals.
+- The original workbook binary was not archived at the project owner's instruction. Its SHA-256 fingerprint and source sheet, POMDAM header, item number, and atomic source cell coordinates are retained in the import registry and facts.
 
 ## Excel round-trip compatibility contract
 
