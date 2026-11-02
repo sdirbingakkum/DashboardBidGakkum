@@ -1,59 +1,68 @@
-# Dashboard Bidang Gakkum
+# Dashboard Sdirbingakkum
 
-Dashboard Sdirbingakkum untuk visualisasi laporan Bidang Gakkum. Data source dianalisis per workbook sebelum dimodelkan dan dimuat ke database.
+Dashboard untuk visualisasi laporan Bidang Gakkum dengan satu domain organisasi: **POMDAM**.
 
-## Architecture baseline
+Data sumber dianalisis per workbook sebelum dimodelkan dan dimuat ke Supabase.
+
+## Architecture
 
 - GitHub: source code, SQL migrations, tests, and documentation.
-- Supabase PostgreSQL: canonical data store, authentication, Row Level Security.
-- Cloudflare: application hosting/deployment target (configured in a later implementation step).
-- Dashboard is the first application. A separate input application will reuse the same database contract later.
+- Supabase PostgreSQL: canonical data store, authentication, and Row Level Security.
+- Cloudflare: application hosting/deployment target.
+- Dashboard is the first application. A separate input application will reuse the same POMDAM reporting data model later.
 
-## Locked domain decisions
+## Locked POMDAM rules
 
-1. Organization short code/abbreviation is the primary display label throughout the dashboard. The formal name remains available as metadata.
-2. POMDAM uses its parent KODAM emblem. Do not create or display a separate POMDAM emblem unless an official requirement is established.
-3. Historical report labels/codes remain as aliases; never silently rewrite source nomenclature.
-4. Do not assume every KODAM has an active POMDAM.
-5. Report counts use the neutral measure `jumlah_tercatat` until the source owner confirms whether a number means incidents, personnel, or another unit.
-6. Totals/subtotals should be derived from normalized base data, not stored as duplicate aggregates.
-7. Excel import/export must preserve the original report layout and formulas after the relevant workbook format has been fully analyzed.
+1. Dashboard organization scope is POMDAM only. There is no separate master organization, hierarchy, menu, filter, or reporting dimension for another unit type.
+2. The 27 POMDAM records are represented directly in `organizations`.
+3. Primary display names use POMDAM abbreviations, for example `POMDAM I/BB`, `POMDAM XIX/TUTAM`, and `POMDAM JAYA`.
+4. Each POMDAM emblem must be exactly the emblem associated with the identical territorial name. Emblem records are attached directly to the POMDAM record; no parent organization is modeled.
+5. Historical report labels/codes remain aliases; never silently rewrite source nomenclature.
+6. Personnel categories PA/BA/TA/PNS are reporting groups, not individual ranks.
+7. Report counts use the neutral measure `jumlah_tercatat` until the source owner confirms whether a number means incidents, personnel, or another unit.
+8. Totals/subtotals are derived from normalized base data, not stored as duplicate aggregates.
+9. Excel import/export must preserve the original report layout and formulas after each workbook format has been analyzed.
 
 ## Current database foundation
 
-Migration: `20261102093235_create_dashboard_master_foundation`
+The deployed POMDAM-only scope is captured by:
+
+- `20261102094219_scope_master_to_pomdam_only`
+- `20261102094326_finalize_pomdam_assets_and_sources`
 
 Master entities:
-- organization_types
-- organizations
-- organization_aliases
-- organization_emblems
-- personnel_categories
-- positions
-- position_assignments
-- terminology
-- master_data_sources
-- organization_change_log
-- violation_groups
-- violation_categories
-- reporting_periods
-- report_imports
-- report_counts
 
-All public tables have RLS enabled. Current policy baseline grants read access to authenticated users only and restricts writes to service-role operations until the authorization roles for operational users are defined.
+- `organization_types` — only POMDAM.
+- `organizations` — 27 active POMDAM units.
+- `organization_aliases` — historical/source labels.
+- `organization_emblems` — emblem assets directly linked to POMDAM.
+- `personnel_categories` — PA, BA, TA, PNS.
+- `positions` — POMDAM position definitions; currently DANPOMDAM.
+- `position_assignments` — dated incumbent history.
+- `terminology` — POMDAM-specific terms.
+- `master_data_sources` — primary source evidence for POMDAM names, appointments, and emblems.
+- `organization_change_log` — auditable master-data changes.
+- `violation_groups`, `violation_categories` — B/C and B1-B11/C1-C6 source categories.
+- `reporting_periods` — month/quarter/semester/year calendar.
+- `report_imports` — import provenance and validation.
+- `report_counts` — normalized report facts.
+
+All public tables have RLS enabled. Authenticated users have SELECT only; anonymous users have no table privileges; writes are restricted to trusted service-role/server-side paths until operational roles are approved. The service-role key must never be exposed to a browser.
 
 ## Data quality status
 
 - The first analyzed workbook, `Rekap Pelanggaran.xlsx`, is a multi-sheet report, not a flat dataset.
-- Its 2026 month/quarter/semester sheets include formula inconsistencies. Store raw source references and validation results during import.
-- KODAM candidate directory entries are seeded as `needs_verification`; this is not an assertion that each has a corresponding active POMDAM.
-- POMDAM assignments, active status, exact effective dates, and official emblems require unit-by-unit source verification.
-- Violation code labels B1-B11 and C1-C6 are provisional source labels and need official wording/legal basis confirmation.
+- Its 2026 month/quarter/semester sheets include formula inconsistencies. Keep raw source references and validation results during import.
+- 27 POMDAM units are seeded as active based on the domain confirmation supplied by the project owner.
+- Four nomenclature variants from the first workbook are preserved as aliases.
+- POMDAM IM has an official emblem reference recorded. The final image asset for each POMDAM must be verified and stored against that POMDAM record; do not substitute a generic or newly drawn logo.
+- Violation labels B1-B11 and C1-C6 remain provisional source labels and need official wording/legal basis confirmation.
+- No report-count facts have been imported. Metric semantics and formula corrections are still being reconciled.
 
 ## Next steps
 
 1. Analyze remaining Excel workbooks one at a time.
-2. Reconcile authoritative organization structure and POMDAM existence/parent relationships.
+2. Complete the official emblem asset register for all POMDAM units.
 3. Confirm report measure semantics and legal basis before accepting report counts.
-4. Add migration tests, import validation, and export fidelity tests.
+4. Add import validation and export-fidelity tests.
 5. Configure application authentication/RLS roles and Cloudflare CI/CD.
