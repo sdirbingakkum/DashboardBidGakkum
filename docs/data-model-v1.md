@@ -21,7 +21,7 @@ This application manages **POMDAM only**. The canonical organization list contai
 - `organization_types`: only the POMDAM type.
 - `organizations`: the 27 POMDAM units.
 - `organization_aliases`: historical/variant source labels.
-- `organization_emblems`: official emblem references/assets attached directly to each POMDAM.
+- `organization_emblems`: one primary emblem/avatar URL per POMDAM, linked directly to the POMDAM record, with source, license/attribution notes, and verification status.
 - `personnel_categories`: PA, BA, TA, PNS.
 - `positions`: position definitions relevant to POMDAM; currently DANPOMDAM.
 - `position_assignments`: dated appointment/occupancy history.
@@ -42,13 +42,25 @@ All tables in `public` have RLS enabled. Authenticated users receive SELECT only
 - 27 unique POMDAM records, all active.
 - 1 organization type: POMDAM.
 - 0 parent organization relationships.
-- 4 source-label aliases from `Rekap Pelanggaran.xlsx`.
-- 1 official emblem reference recorded for POMDAM IM; the final image asset register for all POMDAM units remains to be completed from official sources.
+- 7 preserved aliases: 4 source variants from `Rekap Pelanggaran.xlsx` plus 3 spelling/numbering variants from the official Dinas Sejarah AD directory.
+- 27 primary emblem/avatar references, one per POMDAM: 15 linked to files in the official Dinas Sejarah AD Kotama directory and marked verified; 12 newer-unit candidates linked to Wikimedia Commons and explicitly marked unverified pending direct unit confirmation. All 27 have non-empty `asset_url` values.
 - 1 position definition: DANPOMDAM.
 - 4 personnel categories.
 - 2 violation groups and 17 official, verified violation categories (B1-B11 and C1-C6). The codes and labels are kept exactly as confirmed; legal-basis text remains separate and is not invented.
 - 19 reporting periods for 2026.
 - 0 report count facts imported until the workbook reconciliation and measure definition are complete.
+
+
+## POMDAM emblem/avatar register
+
+Every canonical POMDAM has exactly one primary `organization_emblems` record with a non-empty `asset_url`, and a partial unique index prevents more than one primary emblem per POMDAM.
+
+- 15 legacy POMDAM emblems are linked to image files displayed in the official Dinas Sejarah Angkatan Darat Kotama directory. These are stored as `verification_status='verified'`.
+- 12 emblems for newer POMDAM XIX–XXX are linked to candidate Wikimedia Commons file pages and marked `unverified`. Source/author/license notes and naming discrepancies are retained. These must be compared with the official unit-provided emblem before being marked verified.
+- `asset_url` currently points to the external source host. No logo binary has yet been copied to Supabase Storage; the current database audit shows no Storage bucket or objects. A later asset-hosting step should move only approved files into a project-controlled bucket and update `asset_url` to the managed object URL.
+- The old DisjarahAD directory spells Pattimura as XVI/PTM and Hasanuddin as XIV/HSD, and spells Sriwijaya II/SJW. These variants are preserved as aliases. The canonical POMDAM labels remain XV/PTM, XIV/HSN, and II/SWJ; aliases do not alter canonical identity.
+
+This register ensures 27 avatar URLs exist in master data; it does not claim all 27 binary assets are locally hosted or all 27 have been officially re-verified by each unit.
 
 ## First workbook: Rekap Pelanggaran.xlsx (2026)
 
@@ -73,7 +85,7 @@ The export engine and regression tests for full workbook fidelity are still impl
 
 ## Open work
 
-1. Complete official emblem assets for the 27 POMDAM units.
+1. Verify the 12 newer-unit emblem candidates against direct official unit files; after approval, copy approved binaries to project-controlled Supabase Storage and update `asset_url`.
 2. Confirm whether each report count means incidents, individuals, or another measure.
 3. Populate legal-basis references only when supplied by an authoritative source; this is separate from the already-confirmed official category nomenclature.
 4. Define access roles for operator, verifier, leadership, and auditor.
