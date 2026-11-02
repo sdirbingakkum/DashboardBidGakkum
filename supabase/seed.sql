@@ -58,6 +58,15 @@ insert into public.personnel_categories(code,name,description,category_type,disp
 on conflict(code) do update
 set name=excluded.name,description=excluded.description,category_type=excluded.category_type,display_order=excluded.display_order;
 
+insert into public.sim_categories(code,name,description,display_order) values
+ ('A','A','Golongan SIM A',1),
+ ('BI','BI','Golongan SIM BI',2),
+ ('BII','BII','Golongan SIM BII',3),
+ ('BII_SUS','B II SUS','Golongan SIM B II SUS',4),
+ ('C','C','Golongan SIM C',5)
+on conflict(code) do update
+set name=excluded.name,description=excluded.description,display_order=excluded.display_order,is_active=true;
+
 insert into public.positions(code,short_name,official_name,organization_type_id,description) values
  ('DANPOMDAM','DANPOMDAM','Komandan POMDAM',(select id from public.organization_types where code='POMDAM'),'Jabatan komandan satuan POMDAM.')
 on conflict(code) do update
