@@ -37,6 +37,34 @@ begin
   if n <> 4 then raise exception 'Expected PA/BA/TA/PNS, got % rows', n; end if;
   select count(*) into n from public.violation_categories;
   if n <> 17 then raise exception 'Expected B1-B11 and C1-C6, got % rows', n; end if;
+
+  if exists (
+    with expected(code,name,group_code) as (values
+      ('B1','PPM','B'),('B2','GAM TNI','B'),('B3','PDG','B'),
+      ('B4','Masuk daerah terlarang','B'),
+      ('B5','Meninggalkan barak pada jam dinas','B'),
+      ('B6','Terlambat apel','B'),('B7','Surat nyata diri','B'),
+      ('B8','Surat senjata api','B'),('B9','Pungutan liar','B'),
+      ('B10','Backing','B'),
+      ('B11','Perbuatan lain yang bertentangan dengan perintah/peraturan/disiplin','B'),
+      ('C1','Administrasi kendaraan','C'),
+      ('C2','Kelengkapan wajib kendaraan','C'),
+      ('C3','Rambu dan marka lalu lintas','C'),
+      ('C4','Tidak menggunakan sabuk pengaman','C'),
+      ('C5','Tidak menggunakan helm','C'),
+      ('C6','Etika/sopan santun berlalu lintas','C')
+    )
+    select 1
+    from expected e
+    left join public.violation_categories vc on vc.code=e.code
+    left join public.violation_groups vg on vg.id=vc.group_id
+    where vc.id is null
+       or vc.name <> e.name
+       or vg.code <> e.group_code
+       or vc.verification_status <> 'verified'
+  ) then
+    raise exception 'Official violation nomenclature B1-B11/C1-C6 must match exact labels and be verified';
+  end if;
   select count(*) into n from public.reporting_periods where report_year=2026;
   if n <> 19 then raise exception 'Expected 19 periods for 2026, got %', n; end if;
   select count(*) into n from public.organization_aliases;
