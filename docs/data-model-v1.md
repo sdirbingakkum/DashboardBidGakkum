@@ -28,7 +28,7 @@ This application manages **POMDAM only**. The canonical organization list contai
 - `terminology`: POMDAM-specific glossary entries.
 - `master_data_sources`: source evidence for POMDAM naming, appointments, and emblems.
 - `organization_change_log`: auditable POMDAM master changes.
-- `violation_groups`, `violation_categories`: source-based B/C and B1-B11/C1-C6 hierarchy.
+- `violation_groups`, `violation_categories`: official B/C and B1-B11/C1-C6 hierarchy; all 17 labels and codes were confirmed by the project owner on 2026-11-02 and are stored with `verification_status='verified'`.
 - `reporting_periods`: month/quarter/semester/year calendar.
 - `report_imports`: import provenance and validation summary.
 - `report_counts`: normalized source observations, including workbook sheet/cell provenance.
@@ -46,7 +46,7 @@ All tables in `public` have RLS enabled. Authenticated users receive SELECT only
 - 1 official emblem reference recorded for POMDAM IM; the final image asset register for all POMDAM units remains to be completed from official sources.
 - 1 position definition: DANPOMDAM.
 - 4 personnel categories.
-- 2 violation groups and 17 provisional violation categories.
+- 2 violation groups and 17 official, verified violation categories (B1-B11 and C1-C6). The codes and labels are kept exactly as confirmed; legal-basis text remains separate and is not invented.
 - 19 reporting periods for 2026.
 - 0 report count facts imported until the workbook reconciliation and measure definition are complete.
 
@@ -56,10 +56,25 @@ The workbook is a multi-sheet report, not a flat data table. The source uses a h
 
 The workbook's 21 organization labels are not a reason to create 21-only master data or to treat the other six POMDAM units as zero. Only values actually present in the workbook should be imported.
 
+
+## Excel round-trip compatibility contract
+
+The uploaded workbook is the authoritative presentation template. Normalization changes how facts are stored, not the report's visible content or workbook form.
+
+- Keep an immutable, versioned copy of each original workbook template and its SHA-256 fingerprint. Imports must retain the original file, template version, import batch, source worksheet, source cell, and the original source label/value for reconciliation.
+- Normalize only atomic source observations into `report_counts`. Do not import subtotal, quarter, semester, or grand-total formula outputs as independent facts; those values are derived from the atomic month-level records.
+- Export by opening the matching original workbook template and filling only mapped input cells. Do not recreate sheets from scratch or replace formula cells with hard-coded totals.
+- Preserve worksheet names and order, merged cells, row/column dimensions, hidden rows/columns, formulas, number formats, styles, print area, page orientation, paper size, margins, headers/footers, and print scaling.
+- Recalculate or independently validate formula-driven totals after writing. Compare exported workbook structure and mapped values against the template and approved source data before release.
+- Historical months and future months that use the same approved workbook format must use the same template version. When the official workbook format changes, register a new template version; do not silently reshape older exports.
+- Absence of a POMDAM label in a source workbook is not a zero report and must not be filled with zero unless the source explicitly reports zero. The first analyzed workbook contains 21 POMDAM labels while the canonical master contains 27 POMDAM units; preserve the source workbook's 21-label layout for that template version.
+
+The export engine and regression tests for full workbook fidelity are still implementation work; this contract defines the acceptance criteria, not a claim that export is already available.
+
 ## Open work
 
 1. Complete official emblem assets for the 27 POMDAM units.
 2. Confirm whether each report count means incidents, individuals, or another measure.
-3. Confirm official wording/legal basis for B1-B11 and C1-C6.
+3. Populate legal-basis references only when supplied by an authoritative source; this is separate from the already-confirmed official category nomenclature.
 4. Define access roles for operator, verifier, leadership, and auditor.
 5. Complete workbook catalogue and Excel export-fidelity requirements.
