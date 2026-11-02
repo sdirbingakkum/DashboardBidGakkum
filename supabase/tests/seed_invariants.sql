@@ -36,6 +36,26 @@ begin
   select count(*) into n from public.personnel_categories;
   if n <> 4 then raise exception 'Expected PA/BA/TA/PNS, got % rows', n; end if;
 
+  select count(*) into n from public.provos_education_statuses;
+  if n <> 2 then raise exception 'Expected Provos education statuses SUDAH/BELUM, got %', n; end if;
+  if exists (
+    with expected(code,ord) as (values ('SUDAH',1),('BELUM',2))
+    select 1 from expected e
+    left join public.provos_education_statuses s on s.code=e.code
+    where s.id is null or s.display_order<>e.ord or not s.is_active
+  ) then raise exception 'Provos education status master must contain SUDAH and BELUM'; end if;
+  if exists (
+    select 1 from public.provos_reports
+  ) or exists (select 1 from public.provos_rank_counts)
+    or exists (select 1 from public.provos_education_counts) then
+    raise exception 'Operational Provos snapshots must be imported through validated batches, not seed.sql';
+  end if;
+  if exists (
+    select 1 from pg_class c join pg_namespace nsp on nsp.oid=c.relnamespace
+    where nsp.nspname='public'
+      and c.relname in ('provos_education_statuses','provos_reports','provos_rank_counts','provos_education_counts')
+      and not c.relrowsecurity
+  ) then raise exception 'RLS must be enabled on all Provos tables'; end if;
   select count(*) into n from public.sim_categories;
   if n <> 5 then raise exception 'Expected 5 SIM category master rows, got %', n; end if;
   if exists (
