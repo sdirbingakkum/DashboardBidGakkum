@@ -13,7 +13,7 @@ This application manages **POMDAM only**. The canonical organization list contai
 - The project owner confirmed all 27 POMDAM units exist. The current 27 master rows are therefore active.
 - Historical workbook labels remain in `organization_aliases`; retain source labels exactly for import reconciliation.
 - PA/BA/TA/PNS are personnel reporting categories, not individual rank records.
-- Report counts stay `jumlah_tercatat` until the source owner confirms whether the number means incidents, personnel, or another measure.
+- Both `report_counts` and `sim_report_counts` use `jumlah_tercatat` until the source owner confirms whether each number means incidents, personnel, issued licenses, or another measure.
 - Period and organizational totals are derived from atomic rows.
 
 ## Entity map
@@ -30,8 +30,10 @@ This application manages **POMDAM only**. The canonical organization list contai
 - `organization_change_log`: auditable POMDAM master changes.
 - `violation_groups`, `violation_categories`: official B/C and B1-B11/C1-C6 hierarchy; all 17 labels and codes were confirmed by the project owner on 2026-11-02 and are stored with `verification_status='verified'`.
 - `reporting_periods`: month/quarter/semester/year calendar.
-- `report_imports`: import provenance and validation summary.
-- `report_counts`: normalized source observations, including workbook sheet/cell provenance.
+- `report_imports`: shared import provenance, validation summary, and `dataset_code` discriminator (e.g. `pelanggaran`, `sim`).
+- `report_counts`: Pelanggaran facts, including workbook sheet/cell provenance and personnel-group dimension.
+- `sim_categories`: reusable SIM category master (A, BI, BII, B II SUS, C), referenced by UUID.
+- `sim_report_counts`: SIM facts by period, POMDAM, and SIM category; never mixed into Pelanggaran facts.
 
 ## RLS baseline
 
@@ -48,7 +50,8 @@ All tables in `public` have RLS enabled. Authenticated users receive SELECT only
 - 4 personnel categories.
 - 2 violation groups and 17 official, verified violation categories (B1-B11 and C1-C6). The codes and labels are kept exactly as confirmed; legal-basis text remains separate and is not invented.
 - 19 reporting periods for 2026.
-- 0 report count facts imported until the workbook reconciliation and measure definition are complete.
+- 12,852 Pelanggaran facts from January–September 2026 are loaded in `report_counts`; total `jumlah_tercatat` = 193.
+- 5 reusable SIM category master rows (A, BI, BII, B II SUS, C) and 945 SIM monthly facts from January–September 2026 are loaded; total `jumlah_tercatat` = 7,485. Six POMDAM without source rows remain without facts, not zero.
 
 
 ## POMDAM emblem/avatar register
@@ -69,11 +72,26 @@ The workbook is a multi-sheet report, not a flat data table. The source uses a h
 The workbook version analyzed contains report labels for 21 POMDAM units. Its historical source label `XIX/TT` is mapped to POMDAM XIX/TUTAM through `organization_aliases`. The canonical master remains all 27 POMDAM units. Six newer POMDAM units must still appear in normalized dashboard views and standardized exports; where no report has been submitted for a period, show the unit with no reported value/status rather than inventing zero. Preserve the uploaded workbook byte-for-byte as the original source and retain its 21-unit source layout for provenance. The standardized report output uses the full 27-unit master while preserving the workbook's established visual design, section order, formatting, and calculation logic.
 
 
+
+
+## Second workbook: Lam Sim.xlsx (2026)
+
+The SIM report is a separate reporting domain from Pelanggaran. It shares only the canonical POMDAM organization master, organization aliases, reporting calendar, and import-batch registry. SIM categories and SIM facts remain domain-specific.
+
+- `sim_categories` is the reusable master reference for A, BI, BII, B II SUS, and C. Forms and future modules reference the category UUID; they do not retype category labels.
+- `sim_report_counts` stores atomic month × POMDAM × SIM-category facts. It does not reuse `report_counts`, violation categories, or personnel categories.
+- The January–September 2026 workbook contains 945 atomic facts across 21 POMDAM and five SIM categories. The total is 7,485: A=2,734; BI=1,081; BII=320; B II SUS=118; C=3,232. There are 534 explicit zero values and 411 positive values.
+- The monthly sheet totals are JAN=503, FEB=839, MRT=500, APR=689, MEI=606, JUN=1,741, JUL=950, AGU=657, and SEP=1,000.
+- TW.1, TW.2, SM-1, and TW.3 are aggregation sheets and are not imported as facts. TW.3 duplicates TW.2 because its formulas still reference April–June; the July–September quarter total must be derived from the monthly records (2,607).
+- Two POMDAM-month groups are retained but flagged `unverified` for source-owner review: II/SWJ in June (row total 1,005) and I/BB in September (row total 113). Their source values are not altered.
+- The metric meaning remains `jumlah_tercatat`; the workbook does not by itself establish whether the figures mean licenses issued, services performed, or another measure.
+- The original workbook binary was not archived at the project owner's instruction. Its SHA-256 fingerprint and all 945 source-cell coordinates are stored with the import batch and facts.
+
 ## Excel round-trip compatibility contract
 
 The uploaded workbook is the authoritative presentation template. Normalization changes how facts are stored, not the report's visible content or workbook form.
 
-- Keep an immutable, versioned copy of each original workbook template and its SHA-256 fingerprint. Imports must retain the original file, template version, import batch, source worksheet, source cell, and the original source label/value for reconciliation.
+- Retain an immutable, versioned copy of each original workbook when archival is required by the project owner or records policy. If the owner explicitly declines binary archiving, retain the SHA-256 fingerprint, import batch, source worksheet, and source cell, and set `source_file_archived=false` in the batch validation summary.
 - Normalize only atomic source observations into `report_counts`. Do not import subtotal, quarter, semester, or grand-total formula outputs as independent facts; those values are derived from the atomic month-level records.
 - Export by opening the matching original workbook template and filling only mapped input cells. Do not recreate sheets from scratch or replace formula cells with hard-coded totals.
 - Preserve worksheet names and order, merged cells, row/column dimensions, hidden rows/columns, formulas, number formats, styles, print area, page orientation, paper size, margins, headers/footers, and print scaling.
