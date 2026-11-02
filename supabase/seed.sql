@@ -215,6 +215,7 @@ from (values
  ('POMDAM-XV','XVI/PTM','historical_name','Kode lama di direktori Dinas Sejarah AD; master kanonik tetap XV/PTM.'),
  ('POMDAM-II','II/SJW','source_label','Variasi singkatan pada direktori Dinas Sejarah AD; master kanonik tetap II/SWJ.'),
  ('POMDAM-XIV','XIV/HSD','source_label','Variasi singkatan pada direktori Dinas Sejarah AD; master kanonik tetap XIV/HSN.')
+ ,('POMDAM-XIX','XIX/TT','source_label','Label pada workbook Rekap Pelanggaran.xlsx; master kanonik POMDAM XIX/TUTAM.')
 ) as v(org_code,alias,alias_type,notes)
 join public.organizations o on o.code=v.org_code
 where not exists(
