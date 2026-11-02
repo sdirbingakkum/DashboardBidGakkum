@@ -68,7 +68,31 @@ begin
   select count(*) into n from public.reporting_periods where report_year=2026;
   if n <> 19 then raise exception 'Expected 19 periods for 2026, got %', n; end if;
   select count(*) into n from public.organization_aliases;
-  if n <> 4 then raise exception 'Expected 4 preserved workbook aliases, got %', n; end if;
+  if n < 7 then raise exception 'Expected at least 7 preserved workbook/source aliases, got %', n; end if;
+
+  select count(*) into n from public.organization_emblems where is_primary=true;
+  if n <> 27 then raise exception 'Expected one primary emblem for each of 27 POMDAM units, got %', n; end if;
+  if exists (
+    select 1 from public.organizations o
+    where not exists (
+      select 1 from public.organization_emblems e
+      where e.organization_id=o.id
+        and e.is_primary=true
+        and nullif(btrim(e.asset_url),'') is not null
+    )
+  ) then raise exception 'Every POMDAM must have a non-empty primary emblem asset URL'; end if;
+  if exists (
+    select 1 from public.organization_emblems
+    where is_primary=true
+      and verification_status not in ('verified','unverified')
+  ) then raise exception 'Every primary emblem must have an explicit verification state'; end if;
+  if not exists (
+    select 1 from pg_indexes
+    where schemaname='public'
+      and indexname='organization_emblems_one_primary_per_org_uidx'
+  ) then raise exception 'Unique primary emblem invariant index is missing'; end if;
+  select count(*) into n from public.master_data_sources;
+  if n < 21 then raise exception 'Expected official and emblem provenance sources, got %', n; end if;
   if exists (select 1 from public.report_counts) then
     raise exception 'Report counts must remain empty until metric definition is confirmed';
   end if;
