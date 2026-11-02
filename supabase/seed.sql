@@ -78,7 +78,7 @@ on conflict(code) do update
 set name=excluded.name,description=excluded.description,display_order=excluded.display_order;
 
 insert into public.violation_categories(group_id,code,name,source_label,display_order,verification_status)
-select g.id,v.code,v.name,v.code,v.ord,'needs_verification'
+select g.id,v.code,v.name,v.code,v.ord,'verified'
 from public.violation_groups g
 join (values
  ('B','B1','PPM',1),('B','B2','GAM TNI',2),('B','B3','PDG',3),
@@ -91,7 +91,11 @@ join (values
  ('C','C5','Tidak menggunakan helm',5),('C','C6','Etika/sopan santun berlalu lintas',6)
 ) as v(group_code,code,name,ord) on g.code=v.group_code
 on conflict(code) do update
-set name=excluded.name,source_label=excluded.source_label,display_order=excluded.display_order;
+set group_id=excluded.group_id,
+    name=excluded.name,
+    source_label=excluded.source_label,
+    display_order=excluded.display_order,
+    verification_status=excluded.verification_status;
 
 insert into public.reporting_periods(report_year,period_type,period_number,period_label,starts_on,ends_on)
 select 2026,'month',m,upper(to_char(make_date(2026,m,1),'TMMonth')),
