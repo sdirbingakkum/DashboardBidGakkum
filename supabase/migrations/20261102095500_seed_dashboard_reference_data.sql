@@ -75,7 +75,8 @@ cross join (values
  ('JAYA','KODAM JAYA','Komando Daerah Militer Jayakarta',27)
 ) as v(code,short_name,official_name,ord)
 where t.code='KODAM'
-on conflict (code,valid_from) do update set short_name=excluded.short_name,official_name=excluded.official_name,metadata=excluded.metadata,status='needs_verification';
+on conflict (code,valid_from) do update set short_name=excluded.short_name,official_name=excluded.official_name,metadata=excluded.metadata,status='needs_verification'
+where organizations.organization_type_id = excluded.organization_type_id;
 insert into public.organizations(organization_type_id,code,short_name,official_name,status,display_order,metadata)
 select t.id,'POMAD','POMAD','Polisi Militer Angkatan Darat','needs_verification',1,
  jsonb_build_object('dataset_scope','central_organization','verification_note','Include as master unit; verify exact current chain of command.')
