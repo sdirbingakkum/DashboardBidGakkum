@@ -54,7 +54,7 @@ All tables in `public` have RLS enabled. Authenticated users receive SELECT only
 
 The workbook is a multi-sheet report, not a flat data table. The source uses a historical list of POMDAM labels and has formula inconsistencies in some monthly/period summary sheets. The import process must retain workbook sheet/cell provenance, preserve all original source aliases, and validate totals before accepting facts.
 
-The workbook's 21 organization labels are not a reason to create 21-only master data or to treat the other six POMDAM units as zero. Only values actually present in the workbook should be imported.
+The workbook version analyzed contains report labels for 21 POMDAM units. The canonical master remains all 27 POMDAM units. Six newer POMDAM units must still appear in normalized dashboard views and standardized exports; where no report has been submitted for a period, show the unit with no reported value/status rather than inventing zero. Preserve the uploaded workbook byte-for-byte as the original source and retain its 21-unit source layout for provenance. The standardized report output uses the full 27-unit master while preserving the workbook's established visual design, section order, formatting, and calculation logic.
 
 
 ## Excel round-trip compatibility contract
@@ -67,7 +67,7 @@ The uploaded workbook is the authoritative presentation template. Normalization 
 - Preserve worksheet names and order, merged cells, row/column dimensions, hidden rows/columns, formulas, number formats, styles, print area, page orientation, paper size, margins, headers/footers, and print scaling.
 - Recalculate or independently validate formula-driven totals after writing. Compare exported workbook structure and mapped values against the template and approved source data before release.
 - Historical months and future months that use the same approved workbook format must use the same template version. When the official workbook format changes, register a new template version; do not silently reshape older exports.
-- Absence of a POMDAM label in a source workbook is not a zero report and must not be filled with zero unless the source explicitly reports zero. The first analyzed workbook contains 21 POMDAM labels while the canonical master contains 27 POMDAM units; preserve the source workbook's 21-label layout for that template version.
+- Standardized dashboards and exports always use all 27 canonical POMDAM units. The six newer units remain visible even where historical periods have no submitted report; missing values are not converted to zero. The original uploaded workbook is kept intact as source evidence, while the managed output template extends its row structure to 27 units without changing the established report design, formatting, or formula behavior.
 
 The export engine and regression tests for full workbook fidelity are still implementation work; this contract defines the acceptance criteria, not a claim that export is already available.
 
