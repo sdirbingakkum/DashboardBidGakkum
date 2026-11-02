@@ -132,3 +132,115 @@ values
  ('Serah terima jabatan DANPOMDAM I/BB','https://tniad.mil.id/pangdam-ibb-pimpin-sertijab-danpomdam-ibb-dan-dandeninteldam-ibb/','pomdam_official_reference','TNI AD','primary_official','Rujukan nomenklatur dan jabatan satuan POMDAM I/BB.'),
  ('Serah terima jabatan POMDAM','https://tniad.mil.id/sertijab-kapendam-srendam-dan-pomdam/','pomdam_official_reference','TNI AD','primary_official','Rujukan istilah POMDAM dalam rilis resmi TNI AD.')
 on conflict (source_url) where source_url is not null do nothing;
+
+
+-- Primary POMDAM emblems. Each URL is directly tied to its canonical POMDAM record.
+-- Official Dinas Sejarah AD directory assets are verified; newer Commons candidates stay unverified.
+do $$
+declare
+  r record;
+  v_org_id uuid;
+  v_emblem_id uuid;
+begin
+  for r in
+    select * from (values
+      ('POMDAM-IM','https://disjarah.tni-ad.mil.id/asset/lambang/dam%20im.png','https://disjarah.tni-ad.mil.id/page/detail/bintal-jarah-kotama','verified','PNG','Logo POMDAM IM dari direktori resmi Dinas Sejarah AD.'),
+      ('POMDAM-I','https://disjarah.tni-ad.mil.id/asset/lambang/Lambang_Kodam_Bukit_Barisan.png','https://disjarah.tni-ad.mil.id/page/detail/bintal-jarah-kotama','verified','PNG','Logo POMDAM I/BB dari direktori resmi Dinas Sejarah AD.'),
+      ('POMDAM-II','https://disjarah.tni-ad.mil.id/asset/lambang/dam%20swj.png','https://disjarah.tni-ad.mil.id/page/detail/bintal-jarah-kotama','verified','PNG','Logo POMDAM II/SWJ; sumber resmi menulis variasi II/SJW.'),
+      ('POMDAM-III','https://disjarah.tni-ad.mil.id/asset/lambang/Lambang_Kodam_Siliwangi.png','https://disjarah.tni-ad.mil.id/page/detail/bintal-jarah-kotama','verified','PNG','Logo POMDAM III/SLW dari direktori resmi Dinas Sejarah AD.'),
+      ('POMDAM-IV','https://disjarah.tni-ad.mil.id/asset/lambang/Lambang_Kodam_Diponegoro.png','https://disjarah.tni-ad.mil.id/page/detail/bintal-jarah-kotama','verified','PNG','Logo POMDAM IV/DIP dari direktori resmi Dinas Sejarah AD.'),
+      ('POMDAM-V','https://disjarah.tni-ad.mil.id/asset/lambang/Lambang_Kodam_Brawijaya.png','https://disjarah.tni-ad.mil.id/page/detail/bintal-jarah-kotama','verified','PNG','Logo POMDAM V/BRW dari direktori resmi Dinas Sejarah AD.'),
+      ('POMDAM-VI','https://disjarah.tni-ad.mil.id/asset/lambang/Lambang_Kodam_Mulawarman.svg.png','https://disjarah.tni-ad.mil.id/page/detail/bintal-jarah-kotama','verified','PNG','Logo POMDAM VI/MLW dari direktori resmi Dinas Sejarah AD.'),
+      ('POMDAM-IX','https://disjarah.tni-ad.mil.id/asset/lambang/Lambang_Kodam_Udayana.png','https://disjarah.tni-ad.mil.id/page/detail/bintal-jarah-kotama','verified','PNG','Logo POMDAM IX/UDY dari direktori resmi Dinas Sejarah AD.'),
+      ('POMDAM-XII','https://disjarah.tni-ad.mil.id/asset/lambang/Lambang_Kodam_Tanjungpura.svg.png','https://disjarah.tni-ad.mil.id/page/detail/bintal-jarah-kotama','verified','PNG','Logo POMDAM XII/TPR dari direktori resmi Dinas Sejarah AD.'),
+      ('POMDAM-XIII','https://disjarah.tni-ad.mil.id/asset/lambang/Lambang_Kodam_Merdeka.png','https://disjarah.tni-ad.mil.id/page/detail/bintal-jarah-kotama','verified','PNG','Logo POMDAM XIII/MDK dari direktori resmi Dinas Sejarah AD.'),
+      ('POMDAM-XIV','https://disjarah.tni-ad.mil.id/asset/lambang/Lambang_Kodam_Hasanuddin.svg.png','https://disjarah.tni-ad.mil.id/page/detail/bintal-jarah-kotama','verified','PNG','Logo POMDAM XIV/HSN; sumber lama menulis XIV/HSD.'),
+      ('POMDAM-XV','https://disjarah.tni-ad.mil.id/asset/lambang/dam%20ptm.png','https://disjarah.tni-ad.mil.id/page/detail/bintal-jarah-kotama','verified','PNG','Lambang Pattimura dari direktori resmi Dinas Sejarah AD; page lama menulis XVI/PTM, tetapi master kanonik aplikasi tetap XV/PTM.'),
+      ('POMDAM-XVII','https://disjarah.tni-ad.mil.id/asset/lambang/dam%20cen.png','https://disjarah.tni-ad.mil.id/page/detail/bintal-jarah-kotama','verified','PNG','Logo POMDAM XVII/CEN dari direktori resmi Dinas Sejarah AD.'),
+      ('POMDAM-XVIII','https://disjarah.tni-ad.mil.id/asset/lambang/Lambang_Kodam_Kasuari.png','https://disjarah.tni-ad.mil.id/page/detail/bintal-jarah-kotama','verified','PNG','Logo POMDAM XVIII/KSR dari direktori resmi Dinas Sejarah AD.'),
+      ('POMDAM-JAYA','https://disjarah.tni-ad.mil.id/asset/lambang/Lambang_Kodam_Jaya.png','https://disjarah.tni-ad.mil.id/page/detail/bintal-jarah-kotama','verified','PNG','Logo POMDAM JAYA dari direktori resmi Dinas Sejarah AD.'),
+      ('POMDAM-XIX','https://commons.wikimedia.org/wiki/Special:FilePath/Lambang_Kodam_Tuanku_Tambusai.png','https://commons.wikimedia.org/wiki/File:Lambang_Kodam_Tuanku_Tambusai.png','unverified','PNG','Kandidat Wikimedia Commons; vectorized from photo; bukan file langsung dari situs resmi unit.'),
+      ('POMDAM-XX','https://commons.wikimedia.org/wiki/Special:FilePath/Lambang_Kodam_Tuanku_Imam_Bonjol.png','https://commons.wikimedia.org/wiki/File:Lambang_Kodam_Tuanku_Imam_Bonjol.png','unverified','PNG','Kandidat Wikimedia Commons oleh kontributor; belum diverifikasi terhadap file resmi unit.'),
+      ('POMDAM-XXI','https://commons.wikimedia.org/wiki/Special:FilePath/Lambang_Komando_Daerah_Militer_Radin_Inten.png','https://commons.wikimedia.org/wiki/File:Lambang_Komando_Daerah_Militer_Radin_Inten.png','unverified','PNG','Metadata file Commons mengatribusikan sumber/pembuat kepada Kodam XXI/Radin Inten; belum diverifikasi terhadap file resmi langsung.'),
+      ('POMDAM-XXII','https://commons.wikimedia.org/wiki/Special:FilePath/Lambang_Kodam_XXII_Tambun_Bungai_%282025%29.png','https://commons.wikimedia.org/wiki/File:Lambang_Kodam_XXII_Tambun_Bungai_(2025).png','unverified','PNG','Metadata file Commons menyebut foto dari Kodam XXII/Tambun Bungai; verifikasi visual resmi masih diperlukan.'),
+      ('POMDAM-XXIII','https://commons.wikimedia.org/wiki/Special:FilePath/Lambang_Kodam_Palaka_Wira.png','https://commons.wikimedia.org/wiki/File:Lambang_Kodam_Palaka_Wira.png','unverified','PNG','Kandidat Wikimedia Commons oleh kontributor; belum diverifikasi terhadap file resmi langsung.'),
+      ('POMDAM-XXIV','https://commons.wikimedia.org/wiki/Special:FilePath/Lambang_Kodam_XXIII_Mandala_Trikora.png','https://commons.wikimedia.org/wiki/File:Lambang_Kodam_XXIII_Mandala_Trikora.png','unverified','PNG','Caption file Commons menyebut XXIV/Mandala Trikora, tetapi filename memakai XXIII dan sumber file menyebut Scribd; perlu tinjauan.'),
+      ('POMDAM-XXV','https://commons.wikimedia.org/wiki/Special:FilePath/LOGO_KODAM_XXV_SMR.png','https://commons.wikimedia.org/wiki/File:LOGO_KODAM_XXV_SMR.png','unverified','PNG','Rekreasi desain oleh Kur3115; file page menyebut CC BY-SA 4.0; simpan atribusi jika digunakan.'),
+      ('POMDAM-XXVI','https://commons.wikimedia.org/wiki/Special:FilePath/LOGO_KODAM_XXVI_MATARAM.png','https://commons.wikimedia.org/wiki/File:LOGO_KODAM_XXVI_MATARAM.png','unverified','PNG','Rekreasi desain oleh Kur3115; verifikasi terhadap aset resmi unit diperlukan.'),
+      ('POMDAM-XXVII','https://commons.wikimedia.org/wiki/Special:FilePath/LOGO_KODAM_XXVII_SOBE_SONBAI.png','https://commons.wikimedia.org/wiki/File:LOGO_KODAM_XXVII_SOBE_SONBAI.png','unverified','PNG','Kandidat Wikimedia Commons oleh Kur3115, CC0; verifikasi unit tetap diperlukan.'),
+      ('POMDAM-XXVIII','https://commons.wikimedia.org/wiki/Special:FilePath/LOGO_KODAM_XXVII_MOLOKU_KIE_RAHA.png','https://commons.wikimedia.org/wiki/File:LOGO_KODAM_XXVII_MOLOKU_KIE_RAHA.png','unverified','PNG','Caption menyebut XXVIII/Moloku Kie Raha tetapi filename berisi XXVII; perlu verifikasi visual.'),
+      ('POMDAM-XXIX','https://commons.wikimedia.org/wiki/Special:FilePath/LOGO_KODAM_XXIX_MAMBRUK.png','https://commons.wikimedia.org/wiki/File:LOGO_KODAM_XXIX_MAMBRUK.png','unverified','PNG','Rekreasi desain oleh Kur3115; belum dibandingkan dengan aset resmi unit.'),
+      ('POMDAM-XXX','https://commons.wikimedia.org/wiki/Special:FilePath/LOGO_KODAM_XXX_RINAMBORA.png','https://commons.wikimedia.org/wiki/File:LOGO_KODAM_XXX_RINAMBORA.png','unverified','PNG','Kandidat rekreasi; caption Commons menyebut Tinambora sedangkan nomenklatur resmi Rinambora; perlu konfirmasi visual.')
+    ) as v(org_code,asset_url,source_url,verification_status,file_format,license_notes)
+  loop
+    select o.id into v_org_id
+    from public.organizations o
+    where o.code=r.org_code
+    order by o.valid_from desc nulls first
+    limit 1;
+    if v_org_id is null then
+      raise exception 'Missing POMDAM organization master row for %', r.org_code;
+    end if;
+
+    select e.id into v_emblem_id
+    from public.organization_emblems e
+    where e.organization_id=v_org_id and e.is_primary=true
+    order by e.created_at
+    limit 1;
+
+    if v_emblem_id is null then
+      insert into public.organization_emblems(
+        organization_id,asset_url,source_url,file_format,
+        verification_status,license_notes,is_primary
+      ) values (
+        v_org_id,r.asset_url,r.source_url,r.file_format,
+        r.verification_status,r.license_notes,true
+      );
+    else
+      update public.organization_emblems
+      set asset_url=r.asset_url,source_url=r.source_url,
+          file_format=r.file_format,verification_status=r.verification_status,
+          license_notes=r.license_notes,is_primary=true
+      where id=v_emblem_id;
+    end if;
+  end loop;
+end $$;
+
+insert into public.organization_aliases(
+  organization_id,alias,alias_type,source_reference,notes
+)
+select o.id,v.alias,v.alias_type,
+ 'https://disjarah.tni-ad.mil.id/page/detail/bintal-jarah-kotama',v.notes
+from (values
+ ('POMDAM-XV','XVI/PTM','historical_name','Kode lama di direktori Dinas Sejarah AD; master kanonik tetap XV/PTM.'),
+ ('POMDAM-II','II/SJW','source_label','Variasi singkatan pada direktori Dinas Sejarah AD; master kanonik tetap II/SWJ.'),
+ ('POMDAM-XIV','XIV/HSD','source_label','Variasi singkatan pada direktori Dinas Sejarah AD; master kanonik tetap XIV/HSN.')
+) as v(org_code,alias,alias_type,notes)
+join public.organizations o on o.code=v.org_code
+where not exists(
+  select 1 from public.organization_aliases a
+  where a.organization_id=o.id and a.alias=v.alias and a.alias_type=v.alias_type
+);
+
+insert into public.master_data_sources(source_name,source_url,source_type,publisher,reliability,notes)
+values
+ ('Direktori lambang Kotama TNI AD','https://disjarah.tni-ad.mil.id/page/detail/bintal-jarah-kotama','pomdam_emblem_catalog','Dinas Sejarah Angkatan Darat','primary_official','Memuat gambar lambang dan tautan satuan untuk 15 unit lama. Aset dilekatkan langsung ke record POMDAM sesuai aturan aplikasi.'),
+ ('Daftar Kodam TNI AD 2026 — Potret TMMD ke-127','https://tniad.mil.id/konten/unggahan/2026/04/POTRET-TMMD-KE-127.pdf','pomdam_nomenclature','TNI Angkatan Darat','primary_official','Rujukan nomenklatur satuan 2026, termasuk XV/Pattimura dan enam satuan XIX–XXIV.'),
+ ('Peresmian enam Kodam baru 2025','https://tniad.mil.id/presiden-resmikan-6-kodam-baru-dan-satuan-teritorial-pembangunan-perkuat-pertahanan-dukung-kesejahteraan-rakyat/','pomdam_nomenclature','TNI Angkatan Darat','primary_official','Rujukan pembentukan dan penamaan enam satuan XIX–XXIV pada 10 Agustus 2025.'),
+ ('Peresmian enam Kodam baru 2026','https://tniad.mil.id/hut-ke-81-tni-kasad-saksikan-peresmian-enam-kodam-baru/','pomdam_nomenclature','TNI Angkatan Darat','primary_official','Rujukan pembentukan dan penamaan enam satuan XXV–XXX pada 5 Oktober 2026.'),
+ ('Konfirmasi nama dan lambang Kodam XIX/Tuanku Tambusai','https://mediacenter.riau.go.id/arsip/93266','pomdam_emblem_context','Media Center Riau','official_secondary','Menjelaskan bahwa lambang XIX/Tuanku Tambusai dirancang dengan arahan LAMR dan digunakan secara resmi.'),
+ ('Logo POMDAM XIX — Commons','https://commons.wikimedia.org/wiki/File:Lambang_Kodam_Tuanku_Tambusai.png','pomdam_emblem_candidate','Wikimedia Commons','secondary','Kandidat logo; atribusi dan sumber gambar tercatat pada halaman file. Belum diverifikasi langsung.'),
+ ('Logo POMDAM XX — Commons','https://commons.wikimedia.org/wiki/File:Lambang_Kodam_Tuanku_Imam_Bonjol.png','pomdam_emblem_candidate','Wikimedia Commons','secondary','Kandidat logo; belum diverifikasi terhadap aset resmi langsung.'),
+ ('Logo POMDAM XXI — Commons','https://commons.wikimedia.org/wiki/File:Lambang_Komando_Daerah_Militer_Radin_Inten.png','pomdam_emblem_candidate','Wikimedia Commons','secondary','Metadata file mengatribusikan sumber/pembuat kepada Kodam XXI/Radin Inten; tetap menunggu verifikasi langsung.'),
+ ('Logo POMDAM XXII — Commons','https://commons.wikimedia.org/wiki/File:Lambang_Kodam_XXII_Tambun_Bungai_(2025).png','pomdam_emblem_candidate','Wikimedia Commons','secondary','Metadata file mengatribusikan foto kepada Kodam XXII/Tambun Bungai; tetap menunggu verifikasi langsung.'),
+ ('Logo POMDAM XXIII — Commons','https://commons.wikimedia.org/wiki/File:Lambang_Kodam_Palaka_Wira.png','pomdam_emblem_candidate','Wikimedia Commons','secondary','Kandidat logo oleh kontributor Commons; belum diverifikasi langsung.'),
+ ('Logo POMDAM XXIV — Commons','https://commons.wikimedia.org/wiki/File:Lambang_Kodam_XXIII_Mandala_Trikora.png','pomdam_emblem_candidate','Wikimedia Commons','secondary','Filename dan caption berbeda angka Romawi; kandidat wajib ditinjau.'),
+ ('Logo POMDAM XXV — Commons','https://commons.wikimedia.org/wiki/File:LOGO_KODAM_XXV_SMR.png','pomdam_emblem_candidate','Wikimedia Commons','secondary','Kandidat rekreasi desain, CC BY-SA 4.0; atribusi harus dipertahankan.'),
+ ('Logo POMDAM XXVI — Commons','https://commons.wikimedia.org/wiki/File:LOGO_KODAM_XXVI_MATARAM.png','pomdam_emblem_candidate','Wikimedia Commons','secondary','Kandidat rekreasi desain; belum diverifikasi langsung.'),
+ ('Logo POMDAM XXVII — Commons','https://commons.wikimedia.org/wiki/File:LOGO_KODAM_XXVII_SOBE_SONBAI.png','pomdam_emblem_candidate','Wikimedia Commons','secondary','Kandidat komunitas CC0; belum diverifikasi langsung.'),
+ ('Logo POMDAM XXVIII — Commons','https://commons.wikimedia.org/wiki/File:LOGO_KODAM_XXVII_MOLOKU_KIE_RAHA.png','pomdam_emblem_candidate','Wikimedia Commons','secondary','Caption menyebut XXVIII tetapi filename XXVII; perlu diperiksa.'),
+ ('Logo POMDAM XXIX — Commons','https://commons.wikimedia.org/wiki/File:LOGO_KODAM_XXIX_MAMBRUK.png','pomdam_emblem_candidate','Wikimedia Commons','secondary','Kandidat rekreasi desain; belum diverifikasi langsung.'),
+ ('Logo POMDAM XXX — Commons','https://commons.wikimedia.org/wiki/File:LOGO_KODAM_XXX_RINAMBORA.png','pomdam_emblem_candidate','Wikimedia Commons','secondary','Caption file menyebut Tinambora, sedangkan nomenklatur resmi Rinambora; perlu diperiksa.')
+on conflict (source_url) where source_url is not null do update
+set source_name=excluded.source_name,source_type=excluded.source_type,
+    publisher=excluded.publisher,reliability=excluded.reliability,notes=excluded.notes;
