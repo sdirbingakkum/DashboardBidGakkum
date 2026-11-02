@@ -35,6 +35,29 @@ begin
 
   select count(*) into n from public.personnel_categories;
   if n <> 4 then raise exception 'Expected PA/BA/TA/PNS, got % rows', n; end if;
+
+  select count(*) into n from public.sim_categories;
+  if n <> 5 then raise exception 'Expected 5 SIM category master rows, got %', n; end if;
+  if exists (
+    with expected(code,name,ord) as (values
+      ('A','A',1),('BI','BI',2),('BII','BII',3),
+      ('BII_SUS','B II SUS',4),('C','C',5)
+    )
+    select 1 from expected e
+    left join public.sim_categories sc on sc.code=e.code
+    where sc.id is null or sc.name<>e.name or sc.display_order<>e.ord or not sc.is_active
+  ) then raise exception 'SIM category master must contain A, BI, BII, B II SUS, C in canonical order'; end if;
+  if not exists (
+    select 1 from pg_class c join pg_namespace nsp on nsp.oid=c.relnamespace
+    where nsp.nspname='public' and c.relname='sim_categories' and c.relrowsecurity
+  ) then raise exception 'RLS must be enabled on sim_categories'; end if;
+  if not exists (
+    select 1 from pg_class c join pg_namespace nsp on nsp.oid=c.relnamespace
+    where nsp.nspname='public' and c.relname='sim_report_counts' and c.relrowsecurity
+  ) then raise exception 'RLS must be enabled on sim_report_counts'; end if;
+  if exists (select 1 from public.sim_report_counts) then
+    raise exception 'Workbook facts are imported operational data and must not be preloaded by seed.sql';
+  end if;
   select count(*) into n from public.violation_categories;
   if n <> 17 then raise exception 'Expected B1-B11 and C1-C6, got % rows', n; end if;
 
@@ -99,7 +122,7 @@ begin
   select count(*) into n from public.master_data_sources;
   if n < 21 then raise exception 'Expected official and emblem provenance sources, got %', n; end if;
   if exists (select 1 from public.report_counts) then
-    raise exception 'Report counts must remain empty until metric definition is confirmed';
+    raise exception 'Workbook facts are not part of seed.sql; report data is loaded through validated import batches';
   end if;
   if not (
     select c.relrowsecurity from pg_class c
