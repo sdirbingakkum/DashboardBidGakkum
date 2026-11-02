@@ -260,3 +260,31 @@ values
 on conflict (source_url) where source_url is not null do update
 set source_name=excluded.source_name,source_type=excluded.source_type,
     publisher=excluded.publisher,reliability=excluded.reliability,notes=excluded.notes;
+
+
+-- Reusable Laka Lalin reference masters. Operational workbook facts are not seeded.
+insert into public.laka_lalin_accident_types(code,name,description,display_order) values
+ ('GANDA','GANDA','Label kategori sesuai header workbook.',1),
+ ('TUNGGAL','TUNGGAL','Label kategori sesuai header workbook.',2),
+ ('TABRAK_LARI','TABRAK LARI','Label gabungan header TABRAK dan subheader LARI pada workbook.',3)
+on conflict(code) do update
+set name=excluded.name,description=excluded.description,display_order=excluded.display_order,is_active=true;
+
+insert into public.laka_lalin_loss_severities(code,name,description,display_order) values
+ ('MD','MD','Kode jenis kerugian personel sesuai workbook; kepanjangan tidak diasumsikan.',1),
+ ('LB','LB','Kode jenis kerugian personel sesuai workbook; kepanjangan tidak diasumsikan.',2),
+ ('LR','LR','Kode jenis kerugian personel sesuai workbook; kepanjangan tidak diasumsikan.',3)
+on conflict(code) do update
+set name=excluded.name,description=excluded.description,display_order=excluded.display_order,is_active=true;
+
+insert into public.laka_lalin_vehicle_types(code,name,description,display_order) values
+ ('RANDIS','RANDIS','Kategori kendaraan sesuai header workbook.',1),
+ ('RAN_UMUM','RAN UMUM','Kategori kendaraan sesuai header workbook.',2)
+on conflict(code) do update
+set name=excluded.name,description=excluded.description,display_order=excluded.display_order,is_active=true;
+
+insert into public.laka_lalin_damage_levels(code,name,description,display_order) values
+ ('RB','RB','Kode tingkat kerusakan sesuai workbook; kepanjangan tidak diasumsikan.',1),
+ ('RR','RR','Kode tingkat kerusakan sesuai workbook; kepanjangan tidak diasumsikan.',2)
+on conflict(code) do update
+set name=excluded.name,description=excluded.description,display_order=excluded.display_order,is_active=true;
