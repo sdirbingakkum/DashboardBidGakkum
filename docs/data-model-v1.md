@@ -42,7 +42,7 @@ All tables in `public` have RLS enabled. Authenticated users receive SELECT only
 - 27 unique POMDAM records, all active.
 - 1 organization type: POMDAM.
 - 0 parent organization relationships.
-- 7 preserved aliases: 4 source variants from `Rekap Pelanggaran.xlsx` plus 3 spelling/numbering variants from the official Dinas Sejarah AD directory.
+- 8 preserved source/legacy aliases, including the workbook label `XIX/TT` mapped to the canonical POMDAM XIX/TUTAM; aliases retain the original source wording without changing canonical POMDAM identity.
 - 27 primary emblem/avatar references, one per POMDAM: 15 linked to files in the official Dinas Sejarah AD Kotama directory and marked verified; 12 newer-unit candidates linked to Wikimedia Commons and explicitly marked unverified pending direct unit confirmation. All 27 have non-empty `asset_url` values.
 - 1 position definition: DANPOMDAM.
 - 4 personnel categories.
@@ -66,7 +66,7 @@ This register ensures 27 avatar URLs exist in master data; it does not claim all
 
 The workbook is a multi-sheet report, not a flat data table. The source uses a historical list of POMDAM labels and has formula inconsistencies in some monthly/period summary sheets. The import process must retain workbook sheet/cell provenance, preserve all original source aliases, and validate totals before accepting facts.
 
-The workbook version analyzed contains report labels for 21 POMDAM units. The canonical master remains all 27 POMDAM units. Six newer POMDAM units must still appear in normalized dashboard views and standardized exports; where no report has been submitted for a period, show the unit with no reported value/status rather than inventing zero. Preserve the uploaded workbook byte-for-byte as the original source and retain its 21-unit source layout for provenance. The standardized report output uses the full 27-unit master while preserving the workbook's established visual design, section order, formatting, and calculation logic.
+The workbook version analyzed contains report labels for 21 POMDAM units. Its historical source label `XIX/TT` is mapped to POMDAM XIX/TUTAM through `organization_aliases`. The canonical master remains all 27 POMDAM units. Six newer POMDAM units must still appear in normalized dashboard views and standardized exports; where no report has been submitted for a period, show the unit with no reported value/status rather than inventing zero. Preserve the uploaded workbook byte-for-byte as the original source and retain its 21-unit source layout for provenance. The standardized report output uses the full 27-unit master while preserving the workbook's established visual design, section order, formatting, and calculation logic.
 
 
 ## Excel round-trip compatibility contract
